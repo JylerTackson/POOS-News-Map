@@ -2,8 +2,11 @@
 import express from "express";
 import cors from "cors";
 
-//Mongo Connections
+//Env Connections for Keys
 import dotenv from "dotenv";
+dotenv.config();
+
+//Mongoose for MongoDB Connection
 import mongoose from "mongoose";
 
 //Fetch News Daily at 8 pm
@@ -16,9 +19,8 @@ import userRoutes from "./api/users/route.js";
 import teamRoutes from "./api/team/route.js";
 
 //TODO: NEED TO MOVE INTO .env FILE
-const uri =
-  "mongodb+srv://dtj1029:AppleButter2009@newsmapcluster.htaaqsf.mongodb.net/newsmap?retryWrites=true&w=majority&appName=NewsMapCluster";
-const PORT = 5050;
+const uri = process.env.MONGO_URI;
+const PORT = process.env.PORT || 5050;
 
 //Create Express object
 const app = express();
