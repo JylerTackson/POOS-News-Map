@@ -9,8 +9,12 @@ import mongoose from "mongoose";
 // mongoose schema
 import { dailyNewsSchema } from "../../Mongoose/schemas.js";
 
-const newsapi = new NewsAPI("8561683f0e28460eaa4df402cd0afab7");
+//Dot Connection
+import dotenv from "dotenv";
+dotenv.config();
+const newsapi = new NewsAPI(process.env.NEWS_API_KEY);
 
+//Countrys KVP
 const countryMap = {
   ae: "United Arab Emirates",
   ar: "Argentina",
