@@ -1,31 +1,34 @@
-// This file establishes a connection to a MongoDB database using the MongoDB Node.js driver.
+// src/db/connection.js
+// This file establishes a connection to MongoDB using the Node.js driver
 import "dotenv/config";
-// Import the MongoClient from the mongodb package
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ServerApiVersion } from "mongodb";
 
-//define the mongo connection string and define our mongo client
-const uri = process.env.MONGO_CONNECTION_STRING || "";
+// 1) Read, trim, and log the connection string
+const uri = process.env.MONGO_CONNECTION_STRING?.trim() || "";
+console.log("→ MONGO_CONNECTION_STRING =", JSON.stringify(uri));
+// Make sure this logs exactly "mongodb+srv://..." with no surrounding quotes/spaces
+
+// 2) Create the MongoClient
 const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    },
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
 });
 
-// connect the server to the database
-try{
-    //Connect the client to the server
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+let db;
 
-    console.log("Connected to MongoDB successfully");
-
-}catch (error) {
-    console.error("Error connecting to MongoDB:", error);
+// 3) Connect and verify
+try {
+  await client.connect();                      // Top‑level await (Node 14+ ESM)
+  await client.db("admin").command({ ping: 1 });// Ping to confirm
+  console.log("✅ Connected to MongoDB successfully");
+  db = client.db("app");                       // Use (or create) your “app” database
+} catch (error) {
+  console.error("❌ Error connecting to MongoDB:", error);
+  process.exit(1);                              // Exit if you can’t connect
 }
 
-let db = client.db("app");
-
+// 4) Export the `db` instance for other modules
 export default db;
