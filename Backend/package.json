@@ -1,7 +1,6 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -11,14 +10,11 @@
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
-    "mongodb": "^6.17.0",
-    "mongoose": "^8.16.1",
-    "newsapi": "^2.4.1",
-    "node-cron": "^4.2.0",
-    "node-fetch": "^2.7.0"
+    "mongodb": "^6.17.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "type": "module"
 }

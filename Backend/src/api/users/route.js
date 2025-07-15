@@ -1,15 +1,40 @@
-// src/api/users/route.js
-import express from "express";
-const userRoutes = express.Router();
+// Backend/src/api/users/route.js
 
-// src/api/users/route.js
-import * as userCtrl from "./controller.js";
+import express from 'express';
+import db from '../../db/connection.js';  // your Mongo handle
 
-// mounting all /api/users/* hyperlinks
-userRoutes.post("/register", userCtrl.register); // POST /api/users/register
-userRoutes.post("/login", userCtrl.login); // POST /api/users/login
-userRoutes.get("/:id", userCtrl.getUser); // GET  /api/users/:id
-userRoutes.patch("/:id", userCtrl.updateUser); // PATCH /api/users/:id
-userRoutes.delete("/:id", userCtrl.deleteUser); // DELETE /api/users/:id
+const router = express.Router();
 
-export default userRoutes;
+// POST /api/users/route/register
+router.post('/register', async (req, res) => {
+  try {
+    const { firstName, lastName, email, username, password } = req.body;
+
+    const users = db.collection('users');
+
+    // Optional: check duplicates
+    // await users.findOne({ email })…
+
+    const result = await users.insertOne({
+      firstName,
+      lastName,
+      email,
+      username,
+      password,
+      createdAt: new Date(),
+    });
+
+    return res.status(201).json({
+      message: 'User registered',
+      userId:   result.insertedId
+    });
+  } catch (err) {
+    console.error('Register error:', err);
+    return res.status(500).json({
+      message: 'Registration failed',
+      error:   err.message
+    });
+  }
+});
+
+export default router;

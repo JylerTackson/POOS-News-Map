@@ -16,28 +16,16 @@ export function RegisterForm({
     const form = e.currentTarget;
     const data = new FormData(form);
 
-    // Turn FormData into a plain object:
-    const payload = Object.fromEntries(data.entries());
-    console.log("payload:", payload);
-
     //define a fetch request that is sent to the register file within our server.
-    const response = await fetch("http://localhost:5050/api/users/register", {
+    const response = await fetch("/api/users/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(data),
     });
 
     //handle output:
-    console.log("status:", response.status);
-    const json = await response.json();
-    console.log("body:", json);
-
-    if (!response.ok) {
-      // you can surface the backend’s error message:
-      throw new Error(json.Error || "signup failed");
-    }
-
-    return json;
+    if (!response.ok) throw new Error("signup failed");
+    return response.json();
   }
 
   return (
@@ -79,7 +67,7 @@ export function RegisterForm({
             id="email"
             name="email"
             type="email"
-            placeholder="me@example.com"
+            placeholder="m@example.com"
             required
           />
         </div>

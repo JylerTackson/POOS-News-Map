@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import "./App.css";
-import NavBar from "./components/navBar/NavBar";
+import NavBar from "./Nav";
 
 //import all the pages
 import { ForgorForm } from "./components/Signup/forgor-Password";
@@ -16,20 +16,15 @@ function App() {
     <>
       <NavBar />
 
-      <div className="pt-16">
-        <Routes>
-          <Route
-            path="/pages/Home"
-            element={<HomePage children={undefined} />}
-          />
-          <Route path="/pages/Favorites" element={<FavoritesPage />} />
-          <Route path="/pages/Daily" element={<DailyPage />} />
-          <Route path="/pages/Login" element={<LoginPage />} />
-          <Route path="/pages/AboutUs" element={<AboutPage />} />
-          <Route path="/pages/Register" element={<RegistrationPage />} />
-          <Route path="/pages/Forgor" element={<ForgorForm />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/pages/Home" element={<HomePage children={undefined} />} />
+        <Route path="/pages/Favorites" element={<FavoritesPage />} />
+        <Route path="/pages/Daily" element={<DailyPage />} />
+        <Route path="/pages/Login" element={<LoginPage />} />
+        <Route path="/pages/AboutUs" element={<AboutPage />} />
+        <Route path="/pages/Register" element={<RegistrationPage />} />
+        <Route path="/pages/Forgor" element={<ForgorForm />} />
+      </Routes>
     </>
   );
 }

@@ -7,36 +7,14 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handle form submission logic here
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
-
-    console.log(data.get("email"));
-    console.log(data.get("password"));
-
-    //Turn FormData into a plain object
-    const payload = Object.fromEntries(data.entries());
-    console.log("payload:", payload);
-
-    //define fetch request
-    const response = await fetch("http://localhost:5050/api/users/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    //handle output
-    console.log("status:", response.status);
-    const json = await response.json();
-    console.log("body:", json);
-
-    if (!response.ok) {
-      throw new Error(json.Error || "Login Failed");
-    }
-
-    return json;
+    const email = data.get("email"); // name must match the input’s name/id
+    const password = data.get("password");
+    console.log({ email, password });
   }
 
   return (
