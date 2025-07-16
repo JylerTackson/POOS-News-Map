@@ -70,7 +70,7 @@ async function login(req, res) {
 
   //2) Search for user
   try {
-    const found = await userModel.findOne(req.params.email);
+    const found = await userModel.findOne({ email: req.body.email });
     if (found.password === password) {
       return res.status(201).json({
         Login: "Success",
@@ -96,7 +96,7 @@ async function login(req, res) {
 async function getUser(req, res) {
   try {
     // look up by the URL param, not by passing the whole req object
-    const foundUser = await userModel.findById(req.params.id);
+    const foundUser = await userModel.findById({ id: req.body._id });
 
     if (!foundUser) {
       return res.status(404).json({ LookupError: "no user with that ID" });
@@ -110,11 +110,11 @@ async function getUser(req, res) {
   }
 }
 
-// PATCH /api/users/:id
+// PATCH /api/users/update/:id
 //Update user given the ID
 async function updateUser(req, res) {}
 
-// DELETE /api/users/:id
+// DELETE /api/users/delete/:id
 //Delete a user given the Id
 async function deleteUser(req, res) {}
 

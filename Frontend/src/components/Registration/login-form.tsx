@@ -20,6 +20,7 @@ export function LoginForm({
 
     const form = e.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
+    console.log(payload);
 
     const response = await fetch("http://localhost:5050/api/users/login", {
       method: "POST",
@@ -27,6 +28,7 @@ export function LoginForm({
       body: JSON.stringify(payload),
     });
     const json = await response.json();
+    console.log(json);
 
     if (response.status === 201) {
       // explicitly pluck out the User fields
