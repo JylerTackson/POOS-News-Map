@@ -1,5 +1,4 @@
 // components/NavBar.tsx
-import { LinkIcon } from "lucide-react";
 import Logo from "./logo";
 import Navigations from "./navigations";
 import Profile from "./profile";
