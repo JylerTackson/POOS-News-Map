@@ -18,6 +18,7 @@ export function UpdateForm({
 }: UpdateFormProps) {
   const { user } = useUser();
   const [exists, setExists] = useState<boolean>(false);
+  const [confirm, setConfirm] = useState<boolean>(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     //Create Object
@@ -35,13 +36,17 @@ export function UpdateForm({
     //Handle Output
     if (res.status === 409 && json._id !== data._id) {
       setExists(true);
-      setUpdateStatus(false);
     } else if (res.status === 201) {
       setExists(false);
-      setUpdateStatus(true);
+      setUpdateStatus(false);
     }
 
     return json;
+  }
+
+  function handleReturn(bool: boolean) {
+    setUpdateStatus(bool);
+    return true;
   }
 
   return (
@@ -112,6 +117,13 @@ export function UpdateForm({
         </div>
         <Button type="submit" className="w-full">
           Update
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={() => setUpdateStatus(false)}
+        >
+          Return
         </Button>
       </div>
     </form>
