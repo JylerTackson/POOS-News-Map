@@ -2,6 +2,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useUser } from "../../Contexts/UserContext";
 
 export function RegisterForm({
   className,
@@ -10,6 +13,10 @@ export function RegisterForm({
   // async stands for asynchronus - handle asynchronous operations
   // - Promise: async functions allows return a promise - indicates the eventual completeion or failure of an async operation
   // - Await: Pauses the execution of the async function until that Promise is settled
+  const [exists, setExists] = useState<boolean>(false);
+  const { setUser } = useUser();
+  const navigate = useNavigate();
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     // handle form submission logic here
     e.preventDefault();
@@ -28,13 +35,27 @@ export function RegisterForm({
     });
 
     //handle output:
-    console.log("status:", response.status);
     const json = await response.json();
-    console.log("body:", json);
+    console.log("Json: ", json);
 
-    if (!response.ok) {
-      // you can surface the backend’s error message:
-      throw new Error(json.Error || "signup failed");
+    //handle response
+    if (response.status === 409) {
+      //User Already Exists
+      console.log("409");
+      setExists(true);
+    } else if (response.status === 201) {
+      const userPayload = {
+        //success
+        _id: json._id,
+        firstName: json.firstName,
+        lastName: json.lastName,
+        email: json.email,
+        avatarUrl:
+          "https://drive.google.com/file/d/10zfJuQIji0Ccbkpeqb04JiSABrxqYotv/view?usp=sharing",
+      };
+      setUser(userPayload);
+      setExists(false);
+      navigate("/pages/Home");
     }
 
     return json;
@@ -51,24 +72,29 @@ export function RegisterForm({
         <p className="text-muted-foreground text-sm text-balance">
           Fill out the details below to create an account
         </p>
+        {exists ? (
+          <Label className="text-red-500">Email already exists as user.</Label>
+        ) : (
+          <p></p>
+        )}
       </div>
       <div className="grid gap-6">
         <div className="grid gap-3">
-          <Label htmlFor="first">First Name</Label>
+          <Label htmlFor="firstName">First Name</Label>
           <Input
-            id="first"
-            name="first"
-            type="first"
+            id="firstName"
+            name="firstName"
+            type="text"
             placeholder="Jon"
             required
           />
         </div>
         <div className="grid gap-3">
-          <Label htmlFor="last">Last Name</Label>
+          <Label htmlFor="lastName">Last Name</Label>
           <Input
-            id="last"
-            name="last"
-            type="last"
+            id="lastName"
+            name="lastName"
+            type="text"
             placeholder="Snow"
             required
           />
@@ -81,6 +107,7 @@ export function RegisterForm({
             type="email"
             placeholder="me@example.com"
             required
+            className={exists ? "border-red-500" : ""}
           />
         </div>
         <div className="grid gap-3">
