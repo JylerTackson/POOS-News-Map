@@ -12,11 +12,11 @@ const savedArticlesSchema = new Schema({
 
 const userSchema = new Schema({
   id: Number,
-  firstName: String,
-  lastName: String,
-  email: String,
-  password: String,
-  savedArticles: [savedArticlesSchema],
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  savedArticles: [],
 });
 
 const dailyNewsSchema = new Schema({

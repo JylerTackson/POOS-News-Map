@@ -5,15 +5,19 @@ const router = express.Router();
 //mongoose schema
 import { userSchema } from "../../Mongoose/schemas.js";
 import mongoose from "mongoose";
-const userModel = mongoose.model("login", userSchema, "login");
+const userModel = mongoose.model("users", userSchema, "users");
 
 // POST /api/users/register
 //Register a user
 //TODO: Create a new collection for each member to house their favorited items.
 async function register(req, res) {
   // 1. grab your payload
-  const { first, last, email, password } = req.body;
-  if (!first || !last || !email || !password) {
+  const { firstName, lastName, email, password } = req.body;
+
+  const payload = req.body;
+  console.log("payload: ", payload);
+
+  if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({
       Registration: "Failure",
       Error: "All Schema information required",
@@ -30,12 +34,20 @@ async function register(req, res) {
 
   // 3. create & save
   try {
-    const newUser = await userModel.create({ first, last, email, password });
+    const newUser = await userModel.create({
+      firstName,
+      lastName,
+      email,
+      password,
+    });
 
     // 4. reply with the new document’s ID
     return res.status(201).json({
       Registration: "Success",
-      userId: newUser._id, // auto assigned Mongo ObjectId
+      ID: newUser._id,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
     });
   } catch (err) {
     return res
@@ -62,12 +74,15 @@ async function login(req, res) {
     if (found.password === password) {
       return res.status(201).json({
         Login: "Success",
-        userId: found._id, // auto assigned Mongo ObjectId
+        _id: found._id,
+        firstName: found.firstName,
+        lastName: found.lastName,
+        email: found.email,
       });
     } else {
       return res.status(203).json({
         Login: "Failure",
-        userId: found._id, // auto assigned Mongo ObjectId
+        userId: found._id,
       });
     }
   } catch (err) {
