@@ -1,4 +1,3 @@
-import { GalleryVerticalEnd } from "lucide-react";
 
 import { LoginForm } from "@/components/Profile/login-form";
 

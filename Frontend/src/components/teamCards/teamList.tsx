@@ -1,5 +1,5 @@
-import { TeamCards } from "./teamCard";
 import type { TeamMember } from "./teamCard";
+import { TeamCards } from "./teamCard";
 
 export interface TeamListProps {
   TeamMembers: TeamMember[];
