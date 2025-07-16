@@ -1,6 +1,10 @@
 // src/api/users/route.js
 import express from "express";
+import cors from "cors";
+
 const userRoutes = express.Router();
+userRoutes.use(cors());
+userRoutes.use(express.json());
 
 // src/api/users/route.js
 import * as userCtrl from "./controller.js";

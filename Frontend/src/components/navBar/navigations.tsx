@@ -1,5 +1,4 @@
 // components/navigations.tsx
-import React from "react";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -7,11 +6,10 @@ import {
   NavigationMenuList,
 } from "@radix-ui/react-navigation-menu";
 import {
-  LinkIcon,
-  HomeIcon,
-  HeartIcon,
   ClockIcon,
-  InfoIcon,
+  HeartIcon,
+  HomeIcon,
+  InfoIcon
 } from "lucide-react";
 
 const menuItems = [

@@ -1,6 +1,5 @@
-import { GalleryVerticalEnd } from "lucide-react";
 
-import { LoginForm } from "@/components/Signup/login-form";
+import { LoginForm } from "@/components/Profile/login-form";
 
 export default function LoginPage() {
   return (

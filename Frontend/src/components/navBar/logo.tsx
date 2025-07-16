@@ -1,5 +1,4 @@
 // components/Logo.tsx
-import React from "react";
 import logo from "../../../public/newsmap.png";
 
 const Logo = () => {
