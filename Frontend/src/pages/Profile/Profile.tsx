@@ -4,13 +4,23 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { User } from "../../Types/Users";
 
-//TODO: Implement logic for logging out a user.
-function onLogout() {}
 
-//TODO: Implement logic for updating user info.
-function onUpdate() {}
+import { useUser } from "../../Contexts/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage: React.FC<User> = (user) => {
+  const { setUser } = useUser();
+  const navigate = useNavigate();
+
+  //TODO: Implement logic for logging out a user.
+  function onLogout() {
+    setUser(null);
+    navigate("/pages/Login");
+  }
+
+  //TODO: Implement logic for updating user info.
+  function onUpdate() {}
+
   if (user.firstName === undefined || user.lastName === undefined) {
     return (
       <div className="flex flex-col items-center p-6">
