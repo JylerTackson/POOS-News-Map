@@ -78,6 +78,7 @@ async function login(req, res) {
         firstName: found.firstName,
         lastName: found.lastName,
         email: found.email,
+        avatarUrl: found.avatarUrl,
       });
     } else {
       return res.status(203).json({

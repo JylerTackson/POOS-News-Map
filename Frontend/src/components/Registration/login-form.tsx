@@ -35,7 +35,7 @@ export function LoginForm({
         firstName: json.firstName,
         lastName: json.lastName,
         email: json.email,
-        avatarUrl: "",
+        avatarUrl: json,
       };
       setUser(userPayload);
       Navigate("/pages/Home");

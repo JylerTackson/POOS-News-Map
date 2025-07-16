@@ -12,6 +12,8 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
+import { useState } from "react";
+
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -19,26 +21,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-const HomePage = ({ children }: { children: React.ReactNode }) => {
+const HomePage = () => {
+  const [openStatus, setOpenStatus] = useState<boolean>(false);
+
   return (
-    <div className="flex h-screen">
+    <div className="flex h-full w-full overflow-hidden">
       {/* Sidebar */}
-      <SidebarProvider className="w-72 h-full">
-        <AppSidebar />
+      <SidebarProvider
+        open={openStatus}
+        onOpenChange={setOpenStatus}
+        className={openStatus ? "w-72" : "w-8"}
+      >
+        <div>
+          <AppSidebar />
+        </div>
         <main>
-          <SidebarTrigger />
-          {children}
+          <SidebarTrigger className="bg-gray-200 shadow pt-20 pb-20 border-2 border-black" />
         </main>
       </SidebarProvider>
 
       {/* Main content with Leaflet map */}
-      <main className="flex-1 p-0">
-        <h1 className="sr-only">Home Page</h1>
-        <div className="h-full">
+      <main className="flex-1 w-full pt-4 pr-4 pb-4">
+        <div className="h-full w-full">
           <MapContainer
             center={[51.505, -0.09]}
-            zoom={13}
-            scrollWheelZoom={false}
+            zoom={3}
+            minZoom={3}
+            scrollWheelZoom={true}
             className="w-full h-full"
           >
             <TileLayer
