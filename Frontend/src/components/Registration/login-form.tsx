@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useUser } from "../../Contexts/UserContext";
+import { ForgorForm } from "./forgor-Password";
+
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 export function LoginForm({
   className,
@@ -12,9 +15,9 @@ export function LoginForm({
 }: React.ComponentProps<"form">) {
   const { setUser } = useUser();
   const Navigate = useNavigate();
-  const [invalid, setInvalid] = useState(false); // ← new
+  const [invalid, setInvalid] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setInvalid(false); // ← reset on each submit
 
@@ -54,62 +57,68 @@ export function LoginForm({
   }
 
   return (
-    <form
-      className={cn("flex flex-col gap-6", className)}
-      onSubmit={handleSubmit}
-      {...props}
-    >
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">Login to your account</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          Enter your email below to login to your account
-        </p>
-      </div>
-
-      {/* show a message if invalid */}
-      {invalid && (
-        <p className="text-red-600 text-sm text-center">
-          Email or Password is incorrect
-        </p>
-      )}
-
-      <div className="grid gap-6">
-        <div className="grid gap-3">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="m@example.com"
-            required
-            className={cn(invalid && "border-red-500 focus:border-red-500")}
-          />
+    <>
+      <form
+        className={cn("flex flex-col gap-6", className)}
+        onSubmit={handleLogin}
+        {...props}
+      >
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-2xl font-bold">Login to your account</h1>
+          <p className="text-muted-foreground text-sm">
+            Enter your email below to login to your account
+          </p>
         </div>
 
-        <div className="grid gap-3">
-          <div className="flex items-center">
-            <Label htmlFor="password">Password</Label>
-            <a
-              href="../pages/forgor"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
-            >
-              Forgot your password?
-            </a>
+        {invalid && (
+          <p className="text-red-600 text-sm text-center">
+            Email or Password is incorrect
+          </p>
+        )}
+
+        <div className="grid gap-6">
+          <div className="grid gap-3">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              className={cn(invalid && "border-red-500 focus:border-red-500")}
+            />
           </div>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            required
-            className={cn(invalid && "border-red-500 focus:border-red-500")}
-          />
-        </div>
 
-        <Button type="submit" className="w-full">
-          Login
-        </Button>
-        {/* …the rest of your form… */}
-      </div>
-    </form>
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="text-sm underline-offset-4 hover:underline ml-auto"
+                  >
+                    Forgot Password?
+                  </Button>
+                </DialogTrigger>
+                <ForgorForm />
+              </Dialog>
+            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              className={cn(invalid && "border-red-500 focus:border-red-500")}
+            />
+          </div>
+
+          <Button type="submit" className="w-full">
+            Login
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }

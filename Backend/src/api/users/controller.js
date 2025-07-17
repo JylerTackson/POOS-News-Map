@@ -91,22 +91,22 @@ async function login(req, res) {
   }
 }
 
-// GET  /api/users/:id
+// GET  /api/users/:email
 //Return user information given ID
 async function getUser(req, res) {
   try {
-    // look up by the URL param, not by passing the whole req object
-    const foundUser = await userModel.findById({ id: req.body._id });
+    const email = req.params.email;
+    const found = await userModel.findOne({
+      email: email,
+    });
 
-    if (!foundUser) {
-      return res.status(404).json({ LookupError: "no user with that ID" });
+    if (!found) {
+      return res.status(404).json({ error: "User Not Found" });
+    } else {
+      res.status(201).json(found);
     }
-
-    // send back the actual user document
-    res.status(200).json({ LookupSuccess: foundUser });
   } catch (err) {
-    // if something goes wrong, err.message will be defined
-    res.status(500).json({ LookupError: err.message });
+    return res.status(500).json({ error: { err } });
   }
 }
 
