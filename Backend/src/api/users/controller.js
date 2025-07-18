@@ -197,6 +197,36 @@ async function updateUser(req, res) {
 
 // DELETE /api/users/delete/:id
 //Delete a user given the Id
-async function deleteUser(req, res) {}
+async function deleteUser(req, res) {
+  try {
+    const userId = req.params.id;
+    
+    // Find and delete the user
+    const deletedUser = await userModel.findByIdAndDelete(userId);
+    
+    if (!deletedUser) {
+      return res.status(404).json({ 
+        Delete: "Failure",
+        Error: "User not found" 
+      });
+    }
+    
+    return res.status(200).json({
+      Delete: "Success",
+      message: "User deleted successfully",
+      deletedUser: {
+        _id: deletedUser._id,
+        firstName: deletedUser.firstName,
+        lastName: deletedUser.lastName,
+        email: deletedUser.email
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ 
+      Delete: "Failure", 
+      Error: err.message 
+    });
+  }
+}
 
 export { register, login, getUser, updateUser, deleteUser };

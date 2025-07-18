@@ -10,8 +10,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UpdateForm } from "@/components/Registration/updateUser";
 
-const ProfilePage: React.FC<User> = (user) => {
-  const { setUser } = useUser();
+const ProfilePage: React.FC = () => {
+  const { user, setUser } = useUser();
   const navigate = useNavigate();
   const [updateStatus, setUpdateStatus] = useState<boolean>(false);
 
@@ -26,15 +26,42 @@ const ProfilePage: React.FC<User> = (user) => {
     setUpdateStatus(true);
   }
 
-  //TODO: Implement logic for deleting user
-  function Delete() {
-    fetch(`api/users/delete/:${user._id}`);
-
-    toast("Deleted Account");
-    navigate("/pages/Login");
+  // logic for deleting user
+ async function Delete() {
+  
+  if (!user?._id) {
+    toast.error("No user to delete");
+    return;
   }
+  
+  try {
+    const res = await fetch(`http://localhost:5050/api/users/delete/${user._id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" }
+    });
+    
+    const json = await res.json();
+    
+    if (res.status === 200) {
+      toast.success("Account deleted successfully");
+      setUser(null); // Clear user from context
+      navigate("/pages/Login");
+    } else {
+      toast.error(json.Error || "Failed to delete account");
+    }
+  } catch (err) {
+    toast.error("Error deleting account");
+    console.error(err);
+  }
+}
 
-  if (user.firstName === undefined || user.lastName === undefined) {
+if(user === null){
+  return (<div>
+    <h1>User is null</h1>
+  </div>
+  );
+}
+  else if (user.firstName === undefined || user.lastName === undefined) {
     return (
       <div className="flex flex-col items-center p-6">
         <p>Login</p>
