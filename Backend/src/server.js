@@ -36,7 +36,7 @@ const app = express();
 //Define Middleware
 app.use(cors());
 app.use(express.json());
-
+app.options("\\*", cors());
 //Mount Routes
 app.use("/api/users", userRoutes);
 app.use("/api/news", newsRoutes);
