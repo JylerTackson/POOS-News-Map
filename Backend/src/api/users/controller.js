@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 //Token generation
 import crypto from "crypto";
 //Email verification
-import { sendVerificationEmail } from "../../utils/sendEmail.js";
+import sendVerificationEmail from "../../utils/sendEmail.js";
 
 const userModel = mongoose.model("users", userSchema, "users");
 
