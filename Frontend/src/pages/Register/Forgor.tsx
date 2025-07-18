@@ -1,4 +1,4 @@
-import { ForgorForm } from "@/components/Profile/forgor-Password";
+import { ForgorForm } from "@/components/Registration/forgor-Password";
 
 export default function Page() {
   return (

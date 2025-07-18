@@ -132,21 +132,6 @@ async function showDaily(req, res) {
   }
 }
 
-//Return all favorited news articles given a users ID
-async function showFav(req, res) {
-  //Create model that connects to the collection corresponing to the user requesting to see their favorited items
-  const DailyNews = mongoose.model("test", dailyNewsSchema, req.id);
-
-  try {
-    //return all items within that collection
-    const articles = await DailyNews.find({ favorite: true });
-    res.status(200).json(articles);
-  } catch (err) {
-    //report error
-    res.status(500).json({ error: err.message });
-  }
-}
-
 //Return all news articles given a country
 async function searchByCountry(req, res) {
   const DailyNews = mongoose.model("DailyNews", dailyNewsSchema, "DailyNews");
@@ -158,4 +143,4 @@ async function searchByCountry(req, res) {
   }
 }
 
-export { fetchAndStoreNews, showDaily, showFav, searchByCountry };
+export { fetchAndStoreNews, showDaily, searchByCountry };

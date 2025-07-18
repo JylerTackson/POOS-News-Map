@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { User } from "../../Types/Users";
 
-
 import { useUser } from "../../Contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 
-const ProfilePage: React.FC<User> = (user) => {
-  const { setUser } = useUser();
+import { toast } from "sonner";
+import { UpdateForm } from "@/components/Registration/updateUser";
+
+const ProfilePage: React.FC = () => {
+  const { user, setUser } = useUser();
   const navigate = useNavigate();
+  const [updateStatus, setUpdateStatus] = useState<boolean>(false);
 
   //TODO: Implement logic for logging out a user.
   function onLogout() {
@@ -19,12 +22,58 @@ const ProfilePage: React.FC<User> = (user) => {
   }
 
   //TODO: Implement logic for updating user info.
-  function onUpdate() {}
+  function onUpdate() {
+    setUpdateStatus(true);
+  }
 
-  if (user.firstName === undefined || user.lastName === undefined) {
+  // logic for deleting user
+ async function Delete() {
+  
+  if (!user?._id) {
+    toast.error("No user to delete");
+    return;
+  }
+  
+  try {
+    const res = await fetch(`http://localhost:5050/api/users/delete/${user._id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" }
+    });
+    
+    const json = await res.json();
+    
+    if (res.status === 200) {
+      toast.success("Account deleted successfully");
+      setUser(null); // Clear user from context
+      navigate("/pages/Login");
+    } else {
+      toast.error(json.Error || "Failed to delete account");
+    }
+  } catch (err) {
+    toast.error("Error deleting account");
+    console.error(err);
+  }
+}
+
+if(user === null){
+  return (<div>
+    <h1>User is null</h1>
+  </div>
+  );
+}
+  else if (user.firstName === undefined || user.lastName === undefined) {
     return (
       <div className="flex flex-col items-center p-6">
         <p>Login</p>
+      </div>
+    );
+  } else if (updateStatus === true) {
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-full">
+        <UpdateForm
+          updateStatus={updateStatus}
+          setUpdateStatus={setUpdateStatus}
+        />
       </div>
     );
   } else {
@@ -60,6 +109,9 @@ const ProfilePage: React.FC<User> = (user) => {
             Logout
           </Button>
           <Button onClick={onUpdate}>Update Info</Button>
+          <Button variant="destructive" onClick={Delete}>
+            Delete
+          </Button>
         </div>
       </div>
     );
