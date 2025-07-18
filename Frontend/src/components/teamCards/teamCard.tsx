@@ -26,7 +26,7 @@ interface TeamMemberProps {
 }
 
 export function TeamCards({ member }: TeamMemberProps) {
-  const { fullName, role, degree, gradYear, description, email, _headshot } =
+  const { fullName, role, degree, gradYear, description, email } =
     member;
 
   return (
