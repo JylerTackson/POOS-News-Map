@@ -45,7 +45,7 @@ app.use("/api/team", teamRoutes);
 //Pointing Express to Build directory
 const buildPath = join(__dirname, "..", "..", "Frontend", "dist"); 
 app.use(express.static(buildPath));
-app.get("\\*", (_req, res) => res.sendFile(join(buildPath, "index.html")));
+app.get("*", (_req, res) => res.sendFile(join(buildPath, "index.html")));
 
 // main -- server functionality
 async function main() {
