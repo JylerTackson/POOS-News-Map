@@ -18,6 +18,14 @@ import newsRoutes from "./api/news/route.js";
 import userRoutes from "./api/users/route.js";
 import teamRoutes from "./api/team/route.js";
 
+//Serving Frontend Build
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+
 //TODO: NEED TO MOVE INTO .env FILE
 const uri = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5050;
@@ -33,6 +41,11 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/team", teamRoutes);
+
+//Pointing Express to Build directory
+const buildPath = join(__dirname, "..", "Frontend", "dist"); 
+app.use(express.static(buildPath));
+app.get("*", (_req, res) => res.sendFile(join(buildPath, "index.html")));
 
 // main -- server functionality
 async function main() {
