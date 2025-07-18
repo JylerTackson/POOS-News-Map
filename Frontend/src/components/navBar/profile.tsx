@@ -1,9 +1,8 @@
 // components/profile.tsx
-import React from "react";
-import defaultProfile from "../../assets/stockProfilePhoto.jpg";
-import { Button } from "../ui/button";
-import { useUser } from "../../Contexts/UserContext";
 import { Link } from "react-router-dom";
+import defaultProfile from "../../assets/stockProfilePhoto.jpg";
+import { useUser } from "../../Contexts/UserContext";
+import { Button } from "../ui/button";
 
 const Profile = () => {
   const { user } = useUser();

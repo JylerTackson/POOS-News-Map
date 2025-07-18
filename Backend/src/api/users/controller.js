@@ -8,6 +8,11 @@ import bcrypt from "bcryptjs";
 //mongoose schema
 import { userSchema } from "../../Mongoose/schemas.js";
 import mongoose from "mongoose";
+//Token generation
+import crypto from "crypto";
+//Email verification
+import sendVerificationEmail from "../../utils/sendEmail.js";
+
 const userModel = mongoose.model("users", userSchema, "users");
 
 // POST /api/users/register
@@ -42,20 +47,32 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await userModel.create({
-    firstName,
-    lastName,
-    email,
-    password: hashedPassword,  // <-- Now storing the hashed password
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      isVerified: false,
     });
 
-    // 4. reply with the new document’s ID
+    // 4. Generate verifictaion token with expiration date
+    const emailToken = crypto.randomBytes(32).toString("hex")
+    newUser.verifyToken = emailToken;
+    newUser.verifyTokenExpires = Date.now()+1000*60*60 //1 hour
+
+    await newUser.save(); // add user while waiting
+    await sendVerificationEmail(newUser.email, emailToken, newUser._id);
+
+    // 5. reply with the new document’s ID
     return res.status(201).json({
       Registration: "Success",
+      message: "User created; awaiting email verification",
       ID: newUser._id,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
+      isVerified: newUser.isVerified,
     });
+
   } catch (err) {
     return res
       .status(500)
@@ -77,7 +94,6 @@ async function login(req, res) {
   //2) Search for user
   try {
     const found = await userModel.findOne({ email: req.body.email });
-    
     if (!found) {
       // User not found
       return res.status(401).json({
@@ -229,4 +245,43 @@ async function deleteUser(req, res) {
   }
 }
 
-export { register, login, getUser, updateUser, deleteUser };
+
+// GET /api/users/verify-email?token=…&id=…
+//Gets 
+async function verifyEmail(req, res) {
+  const { token, id } = req.query;
+  try {
+    const user = await userModel.findOne({
+      _id: id,
+      verifyToken: token,
+      verifyTokenExpires: { $gt: Date.now() }
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ verified: "failure", error: "Invalid or expired token." });
+    }
+
+    user.isVerified         = true;
+    user.verifyToken        = undefined;
+    user.verifyTokenExpires = undefined;
+    await user.save();
+
+    return res.json({
+      verified: "success",
+      user: {
+        id:         user._id,
+        firstName:  user.firstName,
+        lastName:   user.lastName,
+        email:      user.email,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ verified: "failure", error: err.message });
+  }
+}
+
+export { register, login, getUser, updateUser, deleteUser, verifyEmail };
