@@ -18,7 +18,7 @@ export function UpdateForm({
   className,
   ...props
 }: UpdateFormProps) {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const [exists, setExists] = useState<boolean>(false);
 
   // Create state for form fields
@@ -56,12 +56,12 @@ if (formData.password) {
 console.log("Sending data:", data);
 
     //Get Response
-    const res = await fetch(`http://localhost:5050/api/users/update/${user?._id}`, {
+    const res = await fetch(`http://localhost:5050/api/users/update/${user?._id}`, { //<--- 
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const json = await res.json();
+    const json = await res.json(); //<------ your response converted to json
 
     //Handle Output
     if(res.status === 409) {
@@ -69,6 +69,7 @@ console.log("Sending data:", data);
     } else if (res.status === 200) {
       setExists(false);
       setUpdateStatus(false);
+      setUser(json.user); //<------ user data
     }
 
     return json;

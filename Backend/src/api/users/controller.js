@@ -140,7 +140,7 @@ async function updateUser(req, res) {
   try {
     const userId = req.params.id;
     const updates = req.body;
-    
+
     // If password is being updated, hash it first
     if (updates.password) {
       const saltRounds = 10;
