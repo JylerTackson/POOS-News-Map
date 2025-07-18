@@ -19,7 +19,7 @@ const userSchema = new Schema({
   savedArticles: [],
   isVerified: { type: Boolean, default: false },
   verifyToken: String,
-  verifyTokenExpires: Date
+  verifyTokenExpires: Date,
 });
 
 const dailyNewsSchema = new Schema({
