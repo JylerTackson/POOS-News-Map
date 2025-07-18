@@ -70,7 +70,7 @@ async function login(req, res) {
 
   //2) Search for user
   try {
-    const found = await userModel.findOne(req.params.email);
+    const found = await userModel.findOne({email: email});
     if (found.password === password) {
       return res.status(201).json({
         Login: "Success",
