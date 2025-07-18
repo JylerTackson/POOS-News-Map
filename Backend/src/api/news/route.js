@@ -7,11 +7,10 @@ newsRoutes.use(cors());
 newsRoutes.use(express.json());
 
 // src/api/users/route.js
-import { showDaily, showFav, searchByCountry } from "./controller.js";
+import { showDaily, searchByCountry } from "./controller.js";
 
 // mounting all /api/news/* hyperlinks
-newsRoutes.get("/Daily", showDaily); // GET  /pages/Daily
-newsRoutes.get("/Favorites", showFav); // GET  /pages/Favorites
-newsRoutes.get("/Country", searchByCountry); //GET /pages/Home Sidebar
+newsRoutes.get("/Daily", showDaily); // GET  /api/news
+newsRoutes.get("/Country", searchByCountry); //GET /api/news/country
 
 export default newsRoutes;
