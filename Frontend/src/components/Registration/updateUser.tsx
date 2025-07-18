@@ -56,7 +56,7 @@ if (formData.password) {
 console.log("Sending data:", data);
 
     //Get Response
-    const res = await fetch(`http://localhost:5050/api/users/update/${user?._id}`, { //<--- 
+    const res = await fetch(`/api/users/update/${user?._id}`, { //<--- 
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

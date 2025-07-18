@@ -20,7 +20,7 @@ export function ForgorForm() {
 
   async function handleForgotPassword(email: string) {
     try {
-    const res = await fetch("http://localhost:5050/api/users/forgot-password", {
+    const res = await fetch("/api/users/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })

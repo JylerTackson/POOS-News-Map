@@ -35,7 +35,7 @@ const ProfilePage: React.FC = () => {
   }
   
   try {
-    const res = await fetch(`http://localhost:5050/api/users/delete/${user._id}`, {
+    const res = await fetch(`/api/users/delete/${user._id}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" }
     });
