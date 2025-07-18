@@ -5,8 +5,7 @@ import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-class HomeScreen extends StatefulWidget 
-{
+class HomeScreen extends StatefulWidget {
   final String title;
   const HomeScreen({Key? key, required this.title}) : super(key: key);
 
@@ -15,156 +14,243 @@ class HomeScreen extends StatefulWidget
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var selectedIndex = 0;
+  int selectedIndex = 0;
+
+  // Login dialog state
+  bool _loginShown = false;
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  bool _loggingIn = false;
+  String _loginError = '';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showLoginDialog();
+    });
+  }
+
+  Future<void> _showLoginDialog() async {
+    if (_loginShown) return;
+    _loginShown = true;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          title: const Text('Please Log In'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _emailCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                obscureText: true,
+              ),
+              if (_loginError.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(_loginError, style: const TextStyle(color: Colors.red)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: _loggingIn
+                  ? null
+                  : () async {
+                      setState(() {
+                        _loggingIn = true;
+                        _loginError = '';
+                      });
+                      final baseUrl = dotenv.env['API_BASE_URL']!;
+                      final uri = Uri.parse('$baseUrl/api/users/login');
+                      try {
+                        final resp = await http.post(
+                          uri,
+                          headers: {'Content-Type': 'application/json'},
+                          body: jsonEncode({
+                            'email': _emailCtrl.text.trim(),
+                            'password': _passCtrl.text.trim(),
+                          }),
+                        );
+                        if (resp.statusCode == 200) {
+                          Navigator.of(context).pop();
+                        } else {
+                          setState(() {
+                            _loginError =
+                                jsonDecode(resp.body)['message'] ??
+                                'Login failed';
+                          });
+                        }
+                      } catch (e) {
+                        setState(() {
+                          _loginError = 'Error: $e';
+                        });
+                      } finally {
+                        setState(() {
+                          _loggingIn = false;
+                        });
+                      }
+                    },
+              child: _loggingIn
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Log In'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // A list of the pages to display
-    final List<Widget> pages = <Widget>[
-      MapPage(), // Represents your Home page
-      Placeholder(), // Represents your Daily page
-      Placeholder(), // Represents your Account page
+    final pages = <Widget>[
+      MapPage(),
+      const Center(child: Text('Favorites')), // Favorites page
+      const Center(child: Text('Account')), // Account page
     ];
+    final current = pages[selectedIndex];
 
-    Widget page = pages[selectedIndex];
-
-    return LayoutBuilder(builder: (context, constraints) {
-      // Use BottomNavigationBar for narrow screens
-      if (constraints.maxWidth < 600) {
-        return Scaffold(
-          body: page, // The selected page is the body
-          bottomNavigationBar: BottomNavigationBar(
-            items: const <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.access_time),
-                label: 'Daily',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Account',
-              ),
-            ],
-            currentIndex: selectedIndex,
-            onTap: (value) {
-              setState(() {
-                selectedIndex = value;
-              });
-            },
-          ),
-        );
-      }
-      // Use NavigationRail for wider screens
-      else {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Narrow: bottom nav
+        if (constraints.maxWidth < 600) {
+          return Scaffold(
+            body: current,
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: selectedIndex,
+              onTap: (i) => setState(() => selectedIndex = i),
+              items: const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favorites',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Account',
+                ),
+              ],
+            ),
+          );
+        }
+        // Wide: rail + content
         return Scaffold(
           body: Row(
             children: [
               SafeArea(
                 child: NavigationRail(
-                  extended: constraints.maxWidth >= 600,
-                  destinations: [
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (i) =>
+                      setState(() => selectedIndex = i),
+                  labelType: NavigationRailLabelType.all,
+                  leading: IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: _showLoginDialog,
+                  ),
+                  destinations: const [
                     NavigationRailDestination(
                       icon: Icon(Icons.home),
                       label: Text('Home'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.access_time),
-                      label: Text('Daily'),
+                      icon: Icon(Icons.favorite),
+                      label: Text('Favorites'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.person),
                       label: Text('Account'),
                     ),
                   ],
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
                 ),
               ),
-              Expanded(
-                child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: page, 
-                ),
-              ),
+              Expanded(child: current),
             ],
           ),
         );
-      }
-    });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
   }
 }
 
-// Convert the widget to a StatefulWidget to manage state.
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({Key? key}) : super(key: key);
 
   @override
   State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
-  // A nullable LatLng variable to store the marker's position.
-  LatLng? _markerPosition;
+  LatLng? _marker;
 
-  // This function is called when the user taps on the map.
-  void _handleTap(dynamic tapPosition, LatLng point) {
-    // Use setState to update the UI with the new marker position.
-    setState(() {
-      _markerPosition = point;
-    });
+  void _onTap(TapPosition tap, LatLng latlng) {
+    setState(() => _marker = latlng);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Newsmap'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+    return FlutterMap(
+      options: MapOptions(
+        center: LatLng(28.60257, -81.20009),
+        zoom: 13,
+        onTap: _onTap,
       ),
-      body: FlutterMap(
-        options: MapOptions(
-          center: LatLng(28.60257, -81.20009), // UCF Coordinates
-          zoom: 13.0,
-          maxZoom: 18.0,
-          // The onTap callback receives the tap position and the LatLng coordinates.
-          onTap: _handleTap,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.example.mobile',
         ),
-        children: [
-          // The TileLayer is the background map image. It should be first.
-          TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.example.app', // Replace with your app's package name
-          ),
-          // The MarkerLayer is drawn on top of the TileLayer.
-          MarkerLayer(
-            // The markers list is rebuilt every time setState is called.
-            markers: [
-              // Conditionally add a Marker to the list if _markerPosition is not null.
-              if (_markerPosition != null)
-                Marker(
-                  // The point property is required and sets the marker's location.
-                  point: _markerPosition!,
-                  width: 40,
-                  height: 40,
-                  // The builder creates the marker's UI.
-                  builder: (context) => const Icon(
-                    Icons.location_pin,
-                    color: Colors.blue,
-                    size: 40.0,
+        MarkerLayer(
+          markers: _marker == null
+              ? []
+              : [
+                  Marker(
+                    point: _marker!,
+                    width: 40,
+                    height: 40,
+                    builder: (_) => const Icon(
+                      Icons.location_pin,
+                      size: 40,
+                      color: Colors.blue,
+                    ),
                   ),
-                ),
-            ],
-          ),
-        ],
-      ),
+                ],
+        ),
+      ],
     );
   }
 }

@@ -17,19 +17,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool isLoading = false;
   String responseMessage = '';
 
   Future<void> registerUser() async {
-    final url = '${dotenv.env['API_BASE_URL']}/api/users/route/register';
+    final url = '${dotenv.env['API_BASE_URL']}/api/users/register';
     final body = jsonEncode({
       "firstName": _firstNameController.text.trim(),
       "lastName": _lastNameController.text.trim(),
       "email": _emailController.text.trim(),
-      "username": _usernameController.text.trim(),
       "password": _passwordController.text.trim(),
     });
 
@@ -89,7 +87,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
-    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -137,13 +134,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Email',
                 icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 15),
-
-              _buildTextField(
-                controller: _usernameController,
-                label: 'Username',
-                icon: Icons.account_circle,
               ),
               const SizedBox(height: 15),
 
