@@ -235,6 +235,43 @@ async function deleteUser(req, res) {
   }
 }
 
+// GET /api/users/verify-email?token=…&id=…
+//Gets 
+async function verifyEmail(req, res) {
+  const { token, id } = req.query;
+  try {
+    const user = await userModel.findOne({
+      _id: id,
+      verifyToken: token,
+      verifyTokenExpires: { $gt: Date.now() }
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ verified: "failure", error: "Invalid or expired token." });
+    }
+
+    user.isVerified         = true;
+    user.verifyToken        = undefined;
+    user.verifyTokenExpires = undefined;
+    await user.save();
+
+    return res.json({
+      verified: "success",
+      user: {
+        id:         user._id,
+        firstName:  user.firstName,
+        lastName:   user.lastName,
+        email:      user.email,
+        isVerified: user.isVerified
+      }
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ verified: "failure", error: err.message });
+  }
+}
 
 // POST /api/users/forgot-password
 // Send temporary password to user's email
@@ -309,4 +346,4 @@ async function forgotPassword(req, res) {
   }
 }
 
-export { register, login, getUser, updateUser, deleteUser, forgotPassword };
+export { register, login, getUser, updateUser, deleteUser, verifyEmail, forgotPassword };
