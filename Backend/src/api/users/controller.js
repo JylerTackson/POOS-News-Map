@@ -5,11 +5,19 @@ const router = express.Router();
 // Import bcryptjs for password hashing
 import bcrypt from "bcryptjs";
 
+// Import SendGrid for password recovery
+import sgMail from '@sendgrid/mail';
+
+// Configure SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 //mongoose schema
 import { userSchema } from "../../Mongoose/schemas.js";
 import mongoose from "mongoose";
+
 //Token generation
 import crypto from "crypto";
+
 //Email verification
 import sendVerificationEmail from "../../utils/sendEmail.js";
 
@@ -54,25 +62,20 @@ async function register(req, res) {
       isVerified: false,
     });
 
-    // 4. Generate verifictaion token with expiration date
     const emailToken = crypto.randomBytes(32).toString("hex")
     newUser.verifyToken = emailToken;
     newUser.verifyTokenExpires = Date.now()+1000*60*60 //1 hour
-
     await newUser.save(); // add user while waiting
     await sendVerificationEmail(newUser.email, emailToken, newUser._id);
-
-    // 5. reply with the new document’s ID
+    // 4. reply with the new document’s ID
     return res.status(201).json({
       Registration: "Success",
-      message: "User created; awaiting email verification",
       ID: newUser._id,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
       isVerified: newUser.isVerified,
     });
-
   } catch (err) {
     return res
       .status(500)
@@ -94,11 +97,12 @@ async function login(req, res) {
   //2) Search for user
   try {
     const found = await userModel.findOne({ email: req.body.email });
+    
     if (!found) {
       // User not found
       return res.status(401).json({
         Login: "Failure",
-        Error: "Invalid email"
+        Error: "Invalid email or password"
       });
     }
 
@@ -115,9 +119,9 @@ async function login(req, res) {
         avatarUrl: found.avatarUrl,
       });
     } else {
-      return res.status(402).json({
+      return res.status(401).json({
         Login: "Failure",
-        Error: "Invalid password"
+        Error: "Invalid email or password"
       });
     }
   } catch (err) {  // <-- This goes OUTSIDE the if/else, paired with try
@@ -245,7 +249,6 @@ async function deleteUser(req, res) {
   }
 }
 
-
 // GET /api/users/verify-email?token=…&id=…
 //Gets 
 async function verifyEmail(req, res) {
@@ -284,4 +287,77 @@ async function verifyEmail(req, res) {
   }
 }
 
-export { register, login, getUser, updateUser, deleteUser, verifyEmail };
+// POST /api/users/forgot-password
+// Send temporary password to user's email
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        ForgotPassword: "Failure",
+        Error: "Email is required"
+      });
+    }
+    
+    // Find user by email
+    const user = await userModel.findOne({ email });
+    
+    if (!user) {
+      // Don't reveal if email exists or not (security best practice)
+      return res.status(200).json({
+        ForgotPassword: "Success",
+        message: "If an account exists, a temporary password has been sent"
+      });
+    }
+    
+    // Generate temporary password (8 characters)
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
+    
+    // Hash the temporary password
+    const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
+    
+    // Update user's password
+    await userModel.findByIdAndUpdate(user._id, {
+      password: hashedTempPassword
+    });
+    
+    // Send email with temporary password
+    const msg = {
+      to: user.email,
+      from: process.env.EMAIL_FROM, // Must be verified in SendGrid
+      subject: 'Your Temporary Password - News Map',
+      text: `Hello ${user.firstName},\n\nYour temporary password is: ${tempPassword}\n\nPlease login and change your password immediately.\n\nBest regards,\nNews Map Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Password Reset Request</h2>
+          <p>Hello ${user.firstName},</p>
+          <p>Your temporary password is:</p>
+          <div style="background-color: #f4f4f4; padding: 10px; font-size: 18px; font-weight: bold; margin: 20px 0;">
+            ${tempPassword}
+          </div>
+          <p><strong>Please login and change your password immediately.</strong></p>
+          <p>If you didn't request this password reset, please contact us immediately.</p>
+          <br>
+          <p>Best regards,<br>News Map Team</p>
+        </div>
+      `
+    };
+    
+    await sgMail.send(msg);
+    
+    return res.status(200).json({
+      ForgotPassword: "Success",
+      message: "Temporary password sent to email"
+    });
+    
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({
+      ForgotPassword: "Failure",
+      Error: "Failed to process password reset"
+    });
+  }
+}
+
+export { register, login, getUser, updateUser, deleteUser, verifyEmail, forgotPassword };
