@@ -17,9 +17,12 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   savedArticles: [],
-  isVerified: { type: Boolean, default: false },
+   isVerified: { type: Boolean, default: false },
   verifyToken: String,
   verifyTokenExpires: Date,
+  // fields for password reset
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 });
 
 const dailyNewsSchema = new Schema({
