@@ -28,7 +28,7 @@ const __dirname  = dirname(__filename);
 
 //TODO: NEED TO MOVE INTO .env FILE
 const uri = process.env.MONGO_URI;
-const PORT = process.env.PORT || 5;
+const PORT = process.env.PORT || 5050;
 
 //Create Express object
 const app = express();
