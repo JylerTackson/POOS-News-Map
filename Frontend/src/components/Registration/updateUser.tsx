@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useUser } from "@/Contexts/UserContext";
 import React, { useState } from "react";
 
+// hell wmario, 
+
 interface UpdateFormProps extends React.ComponentProps<"form"> {
   updateStatus: boolean;
   setUpdateStatus: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,35 +20,58 @@ export function UpdateForm({
 }: UpdateFormProps) {
   const { user } = useUser();
   const [exists, setExists] = useState<boolean>(false);
-  const [confirm, setConfirm] = useState<boolean>(false);
+
+  // Create state for form fields
+  const [formData, setFormData] = useState({
+  firstName: user?.firstName || "",
+  lastName: user?.lastName || "",
+  email: user?.email || "",
+  password: ""
+});
+
+  // Handle input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     //Create Object
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    // Only send non-empty fields
+    const data: any = {
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.email
+  };
+
+// Only include password if it's not empty
+if (formData.password) {
+  data.password = formData.password;
+}
+
+console.log("Sending data:", data);
 
     //Get Response
-    const res = await fetch(`/api/users/update:${user?._id}`, {
-      method: "POST",
+    const res = await fetch(`http://localhost:5050/api/users/update/${user?._id}`, {
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
     const json = await res.json();
 
     //Handle Output
-    if (res.status === 409 && json._id !== data._id) {
+    if(res.status === 409) {
       setExists(true);
-    } else if (res.status === 201) {
+    } else if (res.status === 200) {
       setExists(false);
       setUpdateStatus(false);
     }
 
     return json;
-  }
-
-  function handleReturn(bool: boolean) {
-    setUpdateStatus(bool);
-    return true;
   }
 
   return (
@@ -72,12 +97,13 @@ export function UpdateForm({
         <div className="grid gap-3">
           <Label htmlFor="firstName">First Name</Label>
           <Input
-            id="firstName"
-            name="firstName"
-            type="text"
-            placeholder="Jon"
-            value={user?.firstName}
-            required
+             id="firstName"
+             name="firstName"
+             type="text"
+             placeholder="Jon"
+             value={formData.firstName}
+             onChange={handleInputChange}
+             required
           />
         </div>
         <div className="grid gap-3">
@@ -87,7 +113,8 @@ export function UpdateForm({
             name="lastName"
             type="text"
             placeholder="Snow"
-            value={user?.lastName}
+            value={formData.lastName}
+            onChange={handleInputChange}
             required
           />
         </div>
@@ -98,21 +125,23 @@ export function UpdateForm({
             name="email"
             type="email"
             placeholder="me@example.com"
-            value={user?.email}
+            value={formData.email}
+            onChange={handleInputChange}
             required
             className={exists ? "border-red-500" : ""}
           />
         </div>
         <div className="grid gap-3">
           <div className="flex items-center">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">New Password (leave blank to keep current)</Label>
           </div>
           <Input
             id="password"
             name="password"
             type="password"
             placeholder="********"
-            required
+            value={formData.password}
+            onChange={handleInputChange}
           />
         </div>
         <Button type="submit" className="w-full">
