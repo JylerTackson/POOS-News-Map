@@ -15,5 +15,7 @@ userRoutes.post("/login", userCtrl.login); // POST /api/users/login
 userRoutes.get("/:email", userCtrl.getUser); // GET  /api/users/:email
 userRoutes.patch("/update/:id", userCtrl.updateUser); // PATCH /api/users/update/:id
 userRoutes.delete("/delete/:id", userCtrl.deleteUser); // DELETE /api/users/delete/:id
+userRoutes.post("/forgot-password", userCtrl.forgotPassword); // POST /api/users/forgot-password
+
 
 export default userRoutes;

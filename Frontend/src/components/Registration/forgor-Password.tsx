@@ -19,12 +19,26 @@ export function ForgorForm() {
   const [email, setEmail] = useState<string>("");
 
   async function handleForgotPassword(email: string) {
-    const base = process.env.NEXT_PUBLIC_WEBSITE_URL!;
-    const url = `${base}/api/users/${encodeURIComponent(email)}`;
-    const res = await fetch(url);
+    try {
+    const res = await fetch("http://localhost:5050/api/users/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    
     const json = await res.json();
-    console.log(json);
-    setExists(!json); // or whatever your logic is
+    
+    if (res.status === 200) {
+      alert("Check your email for a temporary password!");
+      // Close the dialog or redirect
+    } else {
+      setExists(true);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    setExists(true);
+  }
+
   }
 
   return (

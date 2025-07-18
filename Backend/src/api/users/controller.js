@@ -5,6 +5,12 @@ const router = express.Router();
 // Import bcryptjs for password hashing
 import bcrypt from "bcryptjs";
 
+// Import SendGrid for password recovery
+import sgMail from '@sendgrid/mail';
+
+// Configure SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 //mongoose schema
 import { userSchema } from "../../Mongoose/schemas.js";
 import mongoose from "mongoose";
@@ -229,4 +235,78 @@ async function deleteUser(req, res) {
   }
 }
 
-export { register, login, getUser, updateUser, deleteUser };
+
+// POST /api/users/forgot-password
+// Send temporary password to user's email
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({
+        ForgotPassword: "Failure",
+        Error: "Email is required"
+      });
+    }
+    
+    // Find user by email
+    const user = await userModel.findOne({ email });
+    
+    if (!user) {
+      // Don't reveal if email exists or not (security best practice)
+      return res.status(200).json({
+        ForgotPassword: "Success",
+        message: "If an account exists, a temporary password has been sent"
+      });
+    }
+    
+    // Generate temporary password (8 characters)
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
+    
+    // Hash the temporary password
+    const hashedTempPassword = await bcrypt.hash(tempPassword, 10);
+    
+    // Update user's password
+    await userModel.findByIdAndUpdate(user._id, {
+      password: hashedTempPassword
+    });
+    
+    // Send email with temporary password
+    const msg = {
+      to: user.email,
+      from: process.env.EMAIL_FROM, // Must be verified in SendGrid
+      subject: 'Your Temporary Password - News Map',
+      text: `Hello ${user.firstName},\n\nYour temporary password is: ${tempPassword}\n\nPlease login and change your password immediately.\n\nBest regards,\nNews Map Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Password Reset Request</h2>
+          <p>Hello ${user.firstName},</p>
+          <p>Your temporary password is:</p>
+          <div style="background-color: #f4f4f4; padding: 10px; font-size: 18px; font-weight: bold; margin: 20px 0;">
+            ${tempPassword}
+          </div>
+          <p><strong>Please login and change your password immediately.</strong></p>
+          <p>If you didn't request this password reset, please contact us immediately.</p>
+          <br>
+          <p>Best regards,<br>News Map Team</p>
+        </div>
+      `
+    };
+    
+    await sgMail.send(msg);
+    
+    return res.status(200).json({
+      ForgotPassword: "Success",
+      message: "Temporary password sent to email"
+    });
+    
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({
+      ForgotPassword: "Failure",
+      Error: "Failed to process password reset"
+    });
+  }
+}
+
+export { register, login, getUser, updateUser, deleteUser, forgotPassword };

@@ -8,8 +8,10 @@
     "dev": "nodemon src/server.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "mongodb": "^6.17.0",

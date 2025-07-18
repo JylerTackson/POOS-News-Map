@@ -17,6 +17,9 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   savedArticles: [],
+  // fields for password reset
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 });
 
 const dailyNewsSchema = new Schema({
