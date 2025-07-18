@@ -14,6 +14,13 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 //mongoose schema
 import { userSchema } from "../../Mongoose/schemas.js";
 import mongoose from "mongoose";
+
+//Token generation
+import crypto from "crypto";
+
+//Email verification
+import sendVerificationEmail from "../../utils/sendEmail.js";
+
 const userModel = mongoose.model("users", userSchema, "users");
 
 // POST /api/users/register
@@ -48,12 +55,18 @@ async function register(req, res) {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await userModel.create({
-    firstName,
-    lastName,
-    email,
-    password: hashedPassword,  // <-- Now storing the hashed password
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      isVerified: false,
     });
 
+    const emailToken = crypto.randomBytes(32).toString("hex")
+    newUser.verifyToken = emailToken;
+    newUser.verifyTokenExpires = Date.now()+1000*60*60 //1 hour
+    await newUser.save(); // add user while waiting
+    await sendVerificationEmail(newUser.email, emailToken, newUser._id);
     // 4. reply with the new document’s ID
     return res.status(201).json({
       Registration: "Success",
@@ -61,6 +74,7 @@ async function register(req, res) {
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
+      isVerified: newUser.isVerified,
     });
   } catch (err) {
     return res
