@@ -14,7 +14,7 @@ export default function DailyPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5050/api/news/Daily")
+    fetch("/api/news/Daily")
       .then((res) => {
         if (!res.ok) throw new Error(`Status ${res.status}`);
         return res.json();
