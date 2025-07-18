@@ -21,7 +21,7 @@ export function LoginForm({
     const form = e.currentTarget;
     const payload = Object.fromEntries(new FormData(form).entries());
 
-    const response = await fetch("http://localhost:5050/api/users/login", {
+    const response = await fetch("/api/users/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
