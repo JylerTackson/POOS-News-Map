@@ -98,7 +98,7 @@ async function login(req, res) {
       // User not found
       return res.status(401).json({
         Login: "Failure",
-        Error: "Invalid email or password"
+        Error: "Invalid email"
       });
     }
 
@@ -115,9 +115,9 @@ async function login(req, res) {
         avatarUrl: found.avatarUrl,
       });
     } else {
-      return res.status(401).json({
+      return res.status(402).json({
         Login: "Failure",
-        Error: "Invalid email or password"
+        Error: "Invalid password"
       });
     }
   } catch (err) {  // <-- This goes OUTSIDE the if/else, paired with try
