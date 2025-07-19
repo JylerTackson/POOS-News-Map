@@ -14,7 +14,6 @@ import ProfilePage from "./pages/Profile/Profile";
 import { useUser } from "./Contexts/UserContext";
 
 function App() {
-  const { user } = useUser();
 
   return (
     <>
