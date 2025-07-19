@@ -96,6 +96,8 @@ async function fetchAndStoreNews() {
     body: a.description || a.content || "",
     date: new Date(a.publishedAt),
     source: a.source.name,
+    url: a.url,
+    urlToImage: a.urlToImage,
     favorite: false,
   }));
 
