@@ -12,8 +12,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { EmailVerified } from "./email-verification";
-
 // avoiding relative vs absolute path conflicts
 import { API_ENDPOINTS } from "../../api";
 
@@ -28,9 +26,7 @@ export function ForgorForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
     });
-    
-    const json = await res.json();
-    
+        
     if (res.status === 200) {
       alert("Check your email for a temporary password!");
       // Close the dialog or redirect
