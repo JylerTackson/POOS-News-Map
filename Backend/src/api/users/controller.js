@@ -18,14 +18,9 @@ import mongoose from "mongoose";
 //Token generation
 import crypto from "crypto";
 
-//Email verification
-import sendVerificationEmail from "../../utils/sendEmail.js";
-
 const userModel = mongoose.model("users", userSchema, "users");
 
 // POST /api/users/register
-//Register a user
-//TODO: Create a new collection for each member to house their favorited items.
 async function register(req, res) {
   // 1. grab your payload
   const { firstName, lastName, email, password } = req.body;
@@ -54,27 +49,56 @@ async function register(req, res) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    // Generate verification token
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+    
     const newUser = await userModel.create({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       isVerified: false,
+      verifyToken: verifyToken,
+      verifyTokenExpires: Date.now() + 3600000 // 1 hour
     });
 
-    const emailToken = crypto.randomBytes(32).toString("hex")
-    newUser.verifyToken = emailToken;
-    newUser.verifyTokenExpires = Date.now()+1000*60*60 //1 hour
-    await newUser.save(); // add user while waiting
-    await sendVerificationEmail(newUser.email, emailToken, newUser._id);
-    // 4. reply with the new document’s ID
+    // Send verification email using SendGrid
+    const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verifyToken}&id=${newUser._id}`;
+    
+    const msg = {
+      to: email,
+      from: process.env.EMAIL_FROM,
+      subject: 'Verify your NewsMap account',
+      text: `Hello ${firstName},\n\nPlease verify your email by clicking this link: ${verifyUrl}\n\nThis link expires in 1 hour.\n\nBest regards,\nNewsMap Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Email Verification</h2>
+          <p>Hello ${firstName},</p>
+          <p>Thank you for registering with NewsMap!</p>
+          <p>Please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verifyUrl}" style="background-color: #4CAF50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Verify Email
+            </a>
+          </div>
+          <p>Or copy and paste this link: ${verifyUrl}</p>
+          <p>This link expires in 1 hour.</p>
+          <br>
+          <p>Best regards,<br>NewsMap Team</p>
+        </div>
+      `
+    };
+    
+    await sgMail.send(msg);
+
+    // 4. reply with success
     return res.status(201).json({
       Registration: "Success",
       ID: newUser._id,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
-      isVerified: newUser.isVerified,
+      message: "Please check your email to verify your account"
     });
   } catch (err) {
     return res
