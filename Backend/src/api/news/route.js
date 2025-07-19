@@ -6,11 +6,12 @@ const newsRoutes = express.Router();
 newsRoutes.use(cors());
 newsRoutes.use(express.json());
 
-// src/api/users/route.js
-import { showDaily, searchByCountry } from "./controller.js";
+// Import all functions from controller
+import { showDaily, searchByCountry, getCountryFromCoordinates } from "./controller.js";
 
 // mounting all /api/news/* hyperlinks
-newsRoutes.get("/Daily", showDaily); // GET  /api/news
-newsRoutes.get("/Country", searchByCountry); //GET /api/news/country
+newsRoutes.get("/Daily", showDaily); // GET  /api/news/Daily
+newsRoutes.get("/Country/:country", searchByCountry); // GET /api/news/Country/:country - FIXED: Added :country parameter
+newsRoutes.get("/country-from-coords/:lat/:lng", getCountryFromCoordinates); // FIXED: Changed from newsCtrl to direct function
 
 export default newsRoutes;
