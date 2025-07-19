@@ -1,7 +1,7 @@
 // src/pages/Home/page.tsx
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { API_ENDPOINTS } from "@/api";
 import type { NewsItem } from "@/components/newsCards/newsCard";
 
