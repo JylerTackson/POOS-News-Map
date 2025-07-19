@@ -96,6 +96,8 @@ async function fetchAndStoreNews() {
     body: a.description || a.content || "",
     date: new Date(a.publishedAt),
     source: a.source.name,
+    url: a.url,
+    urlToImage: a.urlToImage,
     favorite: false,
   }));
 
@@ -138,9 +140,37 @@ async function searchByCountry(req, res) {
 
   try {
     const articles = await DailyNews.find({ country: req.params.country });
+    res.status(200).json(articles); // ADD THIS LINE - it was missing!
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
 
-export { fetchAndStoreNews, showDaily, searchByCountry };
+// GET /api/news/country-from-coords/:lat/:lng
+async function getCountryFromCoordinates(req, res) {
+  try {
+    const { lat, lng } = req.params;
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=3&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'NewsMap/1.0 (school project)'
+        }
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (data.address?.country) {
+      res.json({ country: data.address.country });
+    } else {
+      res.json({ country: null });
+    }
+  } catch (error) {
+    console.error("Geocoding error:", error);
+    res.status(500).json({ error: "Failed to get country" });
+  }
+}
+
+export { fetchAndStoreNews, showDaily, searchByCountry, getCountryFromCoordinates };

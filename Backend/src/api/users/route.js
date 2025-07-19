@@ -17,6 +17,7 @@ userRoutes.get("/:email", userCtrl.getUser); // GET  /api/users/:email
 userRoutes.patch("/update/:id", userCtrl.updateUser); // PATCH /api/users/update/:id
 userRoutes.delete("/delete/:id", userCtrl.deleteUser); // DELETE /api/users/delete/:id
 userRoutes.post("/forgot-password", userCtrl.forgotPassword); // POST /api/users/forgot-password
-
+userRoutes.post("/:id/favorites", userCtrl.addFavorite); // POST /api/users/:id/favorites
+userRoutes.delete("/:id/favorites", userCtrl.removeFavorite); // DELETE /api/users/:id/favorites
 
 export default userRoutes;

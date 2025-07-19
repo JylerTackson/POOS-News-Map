@@ -16,6 +16,8 @@ export interface NewsItem {
   date: Date;
   source: string;
   favorite: boolean;
+   url?: string;         // Add this line - optional since some articles might not have it
+  urlToImage?: string;  // Add this line - optional for the image URL
 }
 
 interface NewsCardProps {
