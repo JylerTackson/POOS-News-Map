@@ -11,8 +11,6 @@ import LoginPage from "./pages/Register/Login";
 import RegistrationPage from "./pages/Register/Register";
 import ProfilePage from "./pages/Profile/Profile";
 
-import { useUser } from "./Contexts/UserContext";
-
 function App() {
 
   return (
