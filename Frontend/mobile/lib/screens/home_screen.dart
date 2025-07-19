@@ -5,9 +5,11 @@ import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'daily_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   final String title;
-  const HomeScreen({Key? key, required this.title}) : super(key: key);
+  const HomeScreen({super.key, required this.title});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -133,6 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final pages = <Widget>[
       MapPage(),
+      const DailyScreen(title: 'Daily',), // Daily news page
       const Center(child: Text('Favorites')), // Favorites page
       const Center(child: Text('Account')), // Account page
     ];
@@ -145,10 +148,18 @@ class _HomeScreenState extends State<HomeScreen> {
           return Scaffold(
             body: current,
             bottomNavigationBar: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
               currentIndex: selectedIndex,
               onTap: (i) => setState(() => selectedIndex = i),
               items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home), 
+                  label: 'Home'
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.access_time), 
+                  label: 'Daily'
+                ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.favorite),
                   label: 'Favorites',
@@ -179,6 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     NavigationRailDestination(
                       icon: Icon(Icons.home),
                       label: Text('Home'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.access_time),
+                      label: Text('Daily'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.favorite),
@@ -227,6 +242,7 @@ class _MapPageState extends State<MapPage> {
       options: MapOptions(
         center: LatLng(28.60257, -81.20009),
         zoom: 13,
+        maxZoom: 18,
         onTap: _onTap,
       ),
       children: [

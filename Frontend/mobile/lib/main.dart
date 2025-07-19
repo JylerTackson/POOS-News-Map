@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/daily_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
