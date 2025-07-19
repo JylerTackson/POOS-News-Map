@@ -33,13 +33,7 @@ function App() {
             <Route
               path="/pages/Profile"
               element={
-                <ProfilePage
-                  _id={user?._id}
-                  firstName={user?.firstName}
-                  lastName={user?.lastName}
-                  email={user?.email}
-                  avatarUrl={user?.avatarUrl}
-                />
+                <ProfilePage/>
               }
             />
           </Routes>
