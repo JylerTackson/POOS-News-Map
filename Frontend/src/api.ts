@@ -9,10 +9,14 @@ export const API_ENDPOINTS = {
   deleteUser: (id: string) => `${API_BASE_URL}/api/users/delete/${id}`,
   forgotPassword: `${API_BASE_URL}/api/users/forgot-password`,
   verifyEmail: `${API_BASE_URL}/api/users/verify-email`,
-  
+  addFavorite: (userId: string) => `${API_BASE_URL}/api/users/${userId}/favorites`,      // ADD THIS
+  removeFavorite: (userId: string) => `${API_BASE_URL}/api/users/${userId}/favorites`,  // ADD THIS
+
+
   // News endpoints
   dailyNews: `${API_BASE_URL}/api/news/Daily`,
-  newsByCountry: `${API_BASE_URL}/api/news/Country`,
+  newsByCountry: (countryCode: string) => `${API_BASE_URL}/api/news/Country/${countryCode}`,
+  getCountryFromCoords: (lat: number, lng: number) => `${API_BASE_URL}/api/news/country-from-coords/${lat}/${lng}`,  // ADD THIS LINE
   
   // Team endpoints
   teamAbout: `${API_BASE_URL}/api/team/About`,

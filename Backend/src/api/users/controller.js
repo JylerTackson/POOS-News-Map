@@ -170,7 +170,8 @@ async function getUser(req, res) {
         firstName: found.firstName,
         lastName: found.lastName,
         email: found.email,
-        avatarUrl: found.avatarUrl
+        avatarUrl: found.avatarUrl,
+        savedArticles: found.savedArticles  // ADD THIS LINE
       });
     }
   } catch (err) {
@@ -384,4 +385,65 @@ async function forgotPassword(req, res) {
   }
 }
 
-export { register, login, getUser, updateUser, deleteUser, verifyEmail, forgotPassword };
+// POST /api/users/:id/favorites
+// Add a favorite article
+async function addFavorite(req, res) {
+  try {
+    const userId = req.params.id;
+    const article = req.body; // The news article to save
+    
+    // Find user and add article to savedArticles array
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { $push: { savedArticles: article } },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Article favorited",
+      savedArticles: user.savedArticles 
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// DELETE /api/users/:id/favorites
+// Remove a favorite article
+async function removeFavorite(req, res) {
+  try {
+    const userId = req.params.id;
+    const { headline, source } = req.body; // Identify article by headline and source
+    
+    // Find user and remove article from savedArticles array
+    const user = await userModel.findByIdAndUpdate(
+      userId,
+      { 
+        $pull: { 
+          savedArticles: { 
+            headline: headline,
+            source: source 
+          } 
+        } 
+      },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Article unfavorited",
+      savedArticles: user.savedArticles 
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export { register, login, getUser, updateUser, deleteUser, verifyEmail, forgotPassword, addFavorite, removeFavorite };
