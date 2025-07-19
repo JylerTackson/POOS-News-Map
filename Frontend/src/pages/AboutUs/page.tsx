@@ -2,6 +2,9 @@ import React, { Suspense, useEffect, useState } from "react";
 
 import type { TeamMember } from "@/components/teamCards/teamCard";
 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
+
 //Lazy-Load the TeamList component
 const TeamList = React.lazy(
   () => import("../../components/teamCards/teamList")
@@ -13,7 +16,7 @@ export default function AboutPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/team/About")
+    fetch(API_ENDPOINTS.teamAbout)
       .then((res) => {
         if (!res.ok) throw new Error(`Status ${res.status}`);
         return res.json();

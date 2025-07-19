@@ -3,6 +3,10 @@
 import React, { useEffect, useState, Suspense } from "react";
 import type { NewsItem } from "../../components/newsCards/newsCard";
 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
+
+
 // Lazy-load the NewsList component
 const NewsList = React.lazy(
   () => import("../../components/newsCards/newsList")
@@ -14,7 +18,7 @@ export default function DailyPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/news/Daily")
+    fetch(API_ENDPOINTS.dailyNews)
       .then((res) => {
         if (!res.ok) throw new Error(`Status ${res.status}`);
         return res.json();

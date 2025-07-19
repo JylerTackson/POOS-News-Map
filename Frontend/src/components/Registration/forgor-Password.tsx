@@ -14,13 +14,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmailVerified } from "./email-verification";
 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
+
 export function ForgorForm() {
   const [exists, setExists] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
 
   async function handleForgotPassword(email: string) {
     try {
-    const res = await fetch("/api/users/forgot-password", {
+    const res = await fetch(API_ENDPOINTS.forgotPassword, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
