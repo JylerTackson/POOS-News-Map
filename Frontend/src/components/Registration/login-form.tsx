@@ -9,6 +9,9 @@ import { ForgorForm } from "./forgor-Password";
 
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
+
 export function LoginForm({
   className,
   ...props
@@ -25,7 +28,7 @@ export function LoginForm({
     const payload = Object.fromEntries(new FormData(form).entries());
     console.log(payload);
 
-    const response = await fetch("/api/users/login", {
+    const response = await fetch(API_ENDPOINTS.login, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

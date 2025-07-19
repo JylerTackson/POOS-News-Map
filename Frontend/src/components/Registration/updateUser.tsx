@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useUser } from "@/Contexts/UserContext";
 import React, { useState } from "react";
 
-// hell wmario, 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
 
 interface UpdateFormProps extends React.ComponentProps<"form"> {
   updateStatus: boolean;
@@ -56,7 +57,7 @@ if (formData.password) {
 console.log("Sending data:", data);
 
     //Get Response
-    const res = await fetch(`/api/users/update/${user?._id}`, { //<--- 
+    const res = await fetch(API_ENDPOINTS.updateUser(user?._id || ''), { 
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

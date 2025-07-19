@@ -10,6 +10,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { UpdateForm } from "@/components/Registration/updateUser";
 
+// avoiding relative vs absolute path conflicts
+import { API_ENDPOINTS } from "../../api";
+
 const ProfilePage: React.FC = () => {
   const { user, setUser } = useUser();
   const navigate = useNavigate();
@@ -35,7 +38,7 @@ const ProfilePage: React.FC = () => {
   }
   
   try {
-    const res = await fetch(`/api/users/delete/${user._id}`, {
+    const res = await fetch(API_ENDPOINTS.deleteUser(user._id), {
       method: "DELETE",
       headers: { "Content-Type": "application/json" }
     });
