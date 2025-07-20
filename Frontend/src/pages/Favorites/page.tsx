@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@/Contexts/UserContext";
 import { API_ENDPOINTS } from "@/api";
 import NewsList from "@/components/newsCards/newsList";

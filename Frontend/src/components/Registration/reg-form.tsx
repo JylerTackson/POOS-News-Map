@@ -26,7 +26,6 @@ export function RegisterForm({
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
-  const { setUser } = useUser();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
