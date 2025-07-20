@@ -94,7 +94,7 @@ async function register(req, res) {
     // 4. reply with success
     return res.status(201).json({
       Registration: "Success",
-      ID: newUser._id,
+      _id: newUser._id,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
@@ -130,6 +130,14 @@ async function login(req, res) {
       });
     }
 
+    // Check if user is verified
+    if (!found.isVerified) {
+      return res.status(403).json({
+        Login: "Failure",
+        Error: "Please verify your email before logging in"
+      });
+    }
+
     // Compare the provided password with the hashed password
     const isPasswordValid = await bcrypt.compare(password, found.password);
     
@@ -148,7 +156,7 @@ async function login(req, res) {
         Error: "Invalid email or password"
       });
     }
-  } catch (err) {  // <-- This goes OUTSIDE the if/else, paired with try
+  } catch (err) {
     return res.status(500).json({ Login: "Failure", Error: err.message });
   }
 }
@@ -298,7 +306,7 @@ async function verifyEmail(req, res) {
     return res.json({
       verified: "success",
       user: {
-        id:         user._id,
+        _id:        user._id,
         firstName:  user.firstName,
         lastName:   user.lastName,
         email:      user.email,

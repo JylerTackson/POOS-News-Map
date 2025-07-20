@@ -11,7 +11,7 @@ export const API_ENDPOINTS = {
   verifyEmail: `${API_BASE_URL}/api/users/verify-email`,
   addFavorite: (userId: string) => `${API_BASE_URL}/api/users/${userId}/favorites`,      // ADD THIS
   removeFavorite: (userId: string) => `${API_BASE_URL}/api/users/${userId}/favorites`,  // ADD THIS
-
+  resendVerification: `${API_BASE_URL}/api/users/resend-verification`,
 
   // News endpoints
   dailyNews: `${API_BASE_URL}/api/news/Daily`,

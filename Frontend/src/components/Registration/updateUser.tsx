@@ -20,41 +20,36 @@ export function UpdateForm({
   ...props
 }: UpdateFormProps) {
   const { user, setUser } = useUser();
-  const [exists, setExists] = useState<boolean>(false);
 
-  // Create state for form fields
+  // Create state for form fields (removed email)
   const [formData, setFormData] = useState({
-  firstName: user?.firstName || "",
-  lastName: user?.lastName || "",
-  email: user?.email || "",
-  password: ""
-});
+    firstName: user?.firstName || "",
+    lastName: user?.lastName || "",
+    password: ""
+  });
 
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = e.target;
-  setFormData(prev => ({
-    ...prev,
-    [name]: value
-  }));
-};
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    //Create Object
-    e.preventDefault();
-    // Only send non-empty fields
-    const data: any = {
-    firstName: formData.firstName,
-    lastName: formData.lastName,
-    email: formData.email
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-// Only include password if it's not empty
-if (formData.password) {
-  data.password = formData.password;
-}
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    
+    // Only send non-empty fields
+    const data: any = {
+      firstName: formData.firstName,
+      lastName: formData.lastName
+    };
 
-console.log("Sending data:", data);
+    // Only include password if it's not empty
+    if (formData.password) {
+      data.password = formData.password;
+    }
 
     //Get Response
     const res = await fetch(API_ENDPOINTS.updateUser(user?._id || ''), { 
@@ -62,15 +57,12 @@ console.log("Sending data:", data);
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const json = await res.json(); //<------ your response converted to json
+    const json = await res.json();
 
     //Handle Output
-    if(res.status === 409) {
-      setExists(true);
-    } else if (res.status === 200) {
-      setExists(false);
+    if (res.status === 200) {
       setUpdateStatus(false);
-      setUser(json.user); //<------ user data
+      setUser(json.user);
     }
 
     return json;
@@ -85,27 +77,20 @@ console.log("Sending data:", data);
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Update your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Fill out the details below to update your account
+          Update your name or password below
         </p>
-        {exists ? (
-          <Label className="text-red-500">
-            Email already exists to a different user.
-          </Label>
-        ) : (
-          <p></p>
-        )}
       </div>
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="firstName">First Name</Label>
           <Input
-             id="firstName"
-             name="firstName"
-             type="text"
-             placeholder="Jon"
-             value={formData.firstName}
-             onChange={handleInputChange}
-             required
+            id="firstName"
+            name="firstName"
+            type="text"
+            placeholder="Jon"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            required
           />
         </div>
         <div className="grid gap-3">
@@ -118,19 +103,6 @@ console.log("Sending data:", data);
             value={formData.lastName}
             onChange={handleInputChange}
             required
-          />
-        </div>
-        <div className="grid gap-3">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="me@example.com"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-            className={exists ? "border-red-500" : ""}
           />
         </div>
         <div className="grid gap-3">

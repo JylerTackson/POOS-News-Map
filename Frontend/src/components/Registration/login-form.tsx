@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useUser } from "../../Contexts/UserContext";
 import { ForgorForm } from "./forgor-Password";
-
+import { toast } from "sonner";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 // avoiding relative vs absolute path conflicts
@@ -35,6 +35,16 @@ export function LoginForm({
     });
     const json = await response.json();
     console.log(json);
+
+    if (response.status === 401) {
+      setInvalid(true);
+      return;
+    }
+
+    if (response.status === 403) {
+      toast.error(json.Error || "Please verify your email before logging in");
+      return;
+    }
 
     if (response.status === 201) {
       // explicitly pluck out the User fields
