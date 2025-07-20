@@ -35,7 +35,7 @@ export function RegisterForm({
     const payload = Object.fromEntries(data.entries());
     
     const pwd: string = payload.password as string;
-    const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-+=:;"'<,>.?]).{8,}$/;
     if(!PWD_REGEX.test(pwd)) {
       setPasswordError(
         "Password must be ≥8 chars and include upper, lower, number & special character"
