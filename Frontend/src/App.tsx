@@ -11,6 +11,9 @@ import LoginPage from "./pages/Register/Login";
 import RegistrationPage from "./pages/Register/Register";
 import ProfilePage from "./pages/Profile/Profile";
 
+// In App.tsx, add this import:
+import VerifyEmailPage from "./pages/Register/VerifyEmail";
+
 function App() {
 
   return (
@@ -26,6 +29,7 @@ function App() {
             <Route path="/pages/Login" element={<LoginPage />} />
             <Route path="/pages/AboutUs" element={<AboutPage />} />
             <Route path="/pages/Register" element={<RegistrationPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/pages/Forgor" element={<ForgorForm />} />
             <Route
               path="/pages/Profile"
