@@ -31,7 +31,7 @@ export default function AboutPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl mb-4">Today's News</h1>
+      <h1 className="text-2xl mb-4">Meet the Team</h1>
       {/* Suspense shows a fallback while NewsList is loading */}
       <Suspense fallback={<p>Loading Members…</p>}>
         <TeamList TeamMembers={members} />
