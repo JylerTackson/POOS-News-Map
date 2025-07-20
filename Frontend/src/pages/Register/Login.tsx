@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
-            <img src="../public/newsmap.webp" className="h-15 w-15" />
+            <img src="/newsmap.webp" className="h-15 w-15" />
             News Map
           </a>
         </div>
@@ -18,7 +18,7 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="vh-100 flex items-center">
-        <img src="../Public/Login.avif" alt="Image" className="" />
+        <img src="/login.avif" alt="Image" className="" />
       </div>
     </div>
   );
