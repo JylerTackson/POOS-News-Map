@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useUser } from "../../Contexts/UserContext";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +22,10 @@ export function RegisterForm({
   ...props
 }: React.ComponentProps<"form">) {
   const [exists, setExists] = useState<boolean>(false);
+  const [passwordError, setPasswordError] = useState<string>("");
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
-  const { setUser } = useUser();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -35,6 +34,16 @@ export function RegisterForm({
     const data = new FormData(form);
     const payload = Object.fromEntries(data.entries());
     
+    const pwd: string = payload.password as string;
+    const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if(!PWD_REGEX.test(pwd)) {
+      setPasswordError(
+        "Password must be ≥8 chars and include upper, lower, number & special character"
+      );
+      return;
+    }
+    setPasswordError("");
+
     const response = await fetch(API_ENDPOINTS.register, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,12 +102,14 @@ export function RegisterForm({
           <p className="text-muted-foreground text-sm text-balance">
             Fill out the details below to create an account
           </p>
-          {exists ? (
-            <Label className="text-red-500">Email already exists as user.</Label>
-          ) : (
-            <p></p>
-          )}
         </div>
+        {(exists || passwordError) && (
+          <p className="text-red-600 text-sm text-center">
+            {exists
+              ? "Email already exists as user."
+              : passwordError}
+          </p>
+        )}
         <div className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="firstName">First Name</Label>
@@ -128,7 +139,9 @@ export function RegisterForm({
               type="email"
               placeholder="me@example.com"
               required
-              className={exists ? "border-red-500" : ""}
+              className={cn(
+                exists && "border-red-500 focus:border-red-500"
+              )}
             />
           </div>
           <div className="grid gap-3">
@@ -141,6 +154,9 @@ export function RegisterForm({
               type="password"
               placeholder="********"
               required
+              className={cn(
+                passwordError && "border-red-500 focus:border-red-500"
+              )}
             />
           </div>
           <Button type="submit" className="w-full">
