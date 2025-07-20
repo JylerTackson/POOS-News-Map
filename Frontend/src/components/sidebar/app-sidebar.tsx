@@ -94,7 +94,7 @@ export function AppSidebar({ news, country, loading, user }: AppSidebarProps) {
           setUserFavorites(prev => prev.filter(
             fav => !(fav.headline === item.headline && fav.source === item.source)
           ));
-          toast.success("Removed from favorites");
+          
         }
       } else {
         // Add favorite
@@ -112,7 +112,6 @@ export function AppSidebar({ news, country, loading, user }: AppSidebarProps) {
           });
           // Update userFavorites
           setUserFavorites(prev => [...prev, item]);
-          toast.success("Added to favorites");
         }
       }
     } catch (error) {
