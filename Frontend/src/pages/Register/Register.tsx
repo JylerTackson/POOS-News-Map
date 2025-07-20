@@ -21,7 +21,7 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="vh-100 flex items-center">
-        <img src="../public/register.avif" alt="Image" className="" />
+        <img src="/register.avif" alt="Image" className="" />
       </div>
     </div>
   );
