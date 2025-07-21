@@ -1,83 +1,84 @@
-//Server and middleware
-import express from "express";
-import cors from "cors";
 
-//Env Connections for Keys
-import dotenv from "dotenv";
+import express      from "express";
+import cors         from "cors";
+import dotenv       from "dotenv";
+import mongoose     from "mongoose";
+import cron         from "node-cron";
+import admin        from "firebase-admin";
+import fs           from "fs";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-
-//Mongoose for MongoDB Connection
-import mongoose from "mongoose";
-
-//Fetch News Daily at 8 pm
-import cron from "node-cron";
+import newsRoutes            from "./api/news/route.js";
+import userRoutes            from "./api/users/route.js";
+import teamRoutes            from "./api/team/route.js";
 import { fetchAndStoreNews } from "./api/news/controller.js";
-
-//Routes
-import newsRoutes from "./api/news/route.js";
-import userRoutes from "./api/users/route.js";
-import teamRoutes from "./api/team/route.js";
-import authMiddleware from './middleware/auth_middleware.js';
-
-
-//FireBase
-import admin from "firebase-admin" 
 
 dotenv.config();
 
-//TODO: NEED TO MOVE INTO .env FILE
-const uri = process.env.MONGO_URI;
-const PORT = process.env.PORT || 5050;
+// ——————————————————————————————————————————————
+// 1) Load Firebase service account
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+} else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+  // read from a local JSON file
+  const raw = fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, "utf8");
+  serviceAccount = JSON.parse(raw);
+} else {
+  throw new Error("No Firebase service account provided in env");
+}
 
 admin.initializeApp({
-  credential: admin.credential.cert(
-    JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
-  )
+  credential: admin.credential.cert(serviceAccount),
 });
 
-//Create Express object
+// ——————————————————————————————————————————————
+// 2) Create Express app
 const app = express();
-
-//Define Middleware
 app.use(cors());
 app.use(express.json());
 
-//Mount Routes
+// 3) Mount API routes
 app.use("/api/users", userRoutes);
-app.use("/api/news", newsRoutes);
-app.use("/api/team", teamRoutes);
+app.use("/api/news",  newsRoutes);
+app.use("/api/team",  teamRoutes);
 
-// main -- server functionality
+// ——————————————————————————————————————————————
+// 4) (Optional) Serve Flutter Web build
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+// go up two levels (src → Backend → project root) then into Frontend/dist
+const buildPath  = join(__dirname, "..", "..", "Frontend", "dist");
+app.use(express.static(buildPath));
+app.get(/^.*$/, (_req, res) =>
+  res.sendFile(join(buildPath, "index.html"))
+);
+
+// ——————————————————————————————————————————————
+// 5) Connect to Mongo, schedule cron, start server
+const PORT = process.env.PORT || 5050;
+
 async function main() {
   try {
-    //1) Connect to Mongo
-    //mongoose.connect() populates a global connection object.
-    await mongoose.connect(uri, {
-      dbName: "app",
-    });
-    console.log("MongoDB Connected using Mongoose");
+    await mongoose.connect(process.env.MONGO_URI, { dbName: "app" });
+    console.log("✅ MongoDB connected");
 
-    //2) Schedule Cron Jobs
-    cron.schedule("0 8 * * *", async () => {
-      try {
-        fetchAndStoreNews();
-      } catch (err) {
-        console.log("Error: " + err);
-      }
-    });
-
-    // 3) start server
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`server listening on port http://0.0.0.0:${PORT}`);
-    });
-
-    admin.initializeApp({
-      credential: admin.credential.cert(require(process.env.FIREBASE_SERVICE_ACCOUNT))
+    cron.schedule("0 8 * * *", fetchAndStoreNews);
+    console.log("⏰ Scheduled daily news fetch at 08:00");
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server listening on port ${PORT}`);
     });
   } catch (err) {
-    console.error("startup error", err);
+    console.error("🔥 Startup error:", err);
     process.exit(1);
   }
+  app.get('/users', async (req, res) => {
+  // ... your handler logic ...
+  const users = await getAllUsers(); 
+  res.json(users);
+});
 }
 
 main();

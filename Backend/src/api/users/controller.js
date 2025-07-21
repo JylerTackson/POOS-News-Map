@@ -1,116 +1,97 @@
-//express server
-import express from "express";
-const router = express.Router();
-
-//mongoose schema
-import { userSchema } from "../../Mongoose/schemas.js";
+// src/api/users/controller.js
 import mongoose from "mongoose";
-const userModel = mongoose.model("login", userSchema, "login");
+import { userSchema } from "../../Mongoose/schemas.js";
+const User = mongoose.model("User", userSchema, "users");
 
-// POST /api/users/register
-//Register a user
-//TODO: Create a new collection for each member to house their favorited items.
-async function register(req, res) {
-  // 1. grab your payload
+// REGISTER (Email/Password)
+export async function register(req, res) {
   const { firstName, lastName, email, password } = req.body;
+  if (!firstName || !lastName || !email || !password)
+    return res.status(400).json({ error: "All fields required" });
 
-  const payload = req.body;
-  console.log("payload: ", payload);
+  // Check if user exists
+  const existing = await User.findOne({ email });
+  if (existing)
+    return res.status(409).json({ error: "User already exists" });
 
-  if (!firstName || !lastName || !email || !password) {
-    return res.status(400).json({
-      Registration: "Failure",
-      Error: "All Schema information required",
-    });
-  }
-
-  // 2. check for existing user
-  const existing = await userModel.findOne({ email });
-  if (existing) {
-    return res
-      .status(409)
-      .json({ Registration: "Failure", Error: "User already exists" });
-  }
-
-  // 3. create & save
+  // Save user
   try {
-    const newUser = await userModel.create({
-      firstName,
-      lastName,
-      email,
-      password,
+    const newUser = new User({
+      firstName, lastName, email,
+      passwordHash: password, // You should hash this!
+      isVerified: false
     });
-
-    // 4. reply with the new document’s ID
-    return res.status(201).json({
-      Registration: "Success",
-      ID: newUser._id,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-    });
+    await newUser.save();
+    res.status(201).json({ message: "Registered", userId: newUser._id });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ Registration: "Failure", Error: err.message });
+    res.status(500).json({ error: err.message });
   }
 }
-// GET /api/users/login
-//Login given user information
-async function login(req, res) {
-  //1) Grab your payload
+
+// LOGIN
+export async function login(req, res) {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({
-      Registration: "Failure",
-      Error: "Both Email and Password are required",
-    });
-  }
+  if (!email || !password)
+    return res.status(400).json({ error: "Email and password required" });
 
-  //2) Search for user
-  try {
-    const found = await userModel.findOne(req.params.email);
-    if (found.password === password) {
-      return res.status(201).json({
-        Login: "Success",
-        userId: found._id, // auto assigned Mongo ObjectId
-      });
-    } else {
-      return res.status(203).json({
-        Login: "Failure",
-        userId: found._id, // auto assigned Mongo ObjectId
-      });
-    }
-  } catch (err) {
-    return res.status(500).json({ Login: "Failure", Error: err.message });
-  }
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  // NOTE: You must use real password hashing/check here!
+  if (user.passwordHash !== password)
+    return res.status(403).json({ error: "Incorrect password" });
+
+  res.json({ message: "Login successful", userId: user._id });
 }
 
-// GET  /api/users/:id
-//Return user information given ID
-async function getUser(req, res) {
-  try {
-    // look up by the URL param, not by passing the whole req object
-    const foundUser = await userModel.findById(req.params.id);
-
-    if (!foundUser) {
-      return res.status(404).json({ LookupError: "no user with that ID" });
-    }
-
-    // send back the actual user document
-    res.status(200).json({ LookupSuccess: foundUser });
-  } catch (err) {
-    // if something goes wrong, err.message will be defined
-    res.status(500).json({ LookupError: err.message });
-  }
+// EMAIL VERIFICATION (stub)
+export async function verifyEmail(req, res) {
+  // You’d verify a token and set isVerified=true here
+  res.json({ message: "Email verified (stub)" });
 }
 
-// PATCH /api/users/:id
-//Update user given the ID
-async function updateUser(req, res) {}
+// PASSWORD RESET (stub)
+export async function forgotPassword(req, res) {
+  // Normally, generate a reset token, send email, etc.
+  res.json({ message: "Password reset link sent (stub)" });
+}
 
-// DELETE /api/users/:id
-//Delete a user given the Id
-async function deleteUser(req, res) {}
+// GET USER BY EMAIL (for /api/users/:email)
+export async function getUser(req, res) {
+  const { email } = req.params;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ error: "User not found" });
+  res.json({ user });
+}
 
-export { register, login, getUser, updateUser, deleteUser };
+// UPDATE USER (stub)
+export async function updateUser(req, res) {
+  res.json({ message: "Update user (stub)" });
+}
+
+// DELETE USER (stub)
+export async function deleteUser(req, res) {
+  res.json({ message: "Delete user (stub)" });
+}
+
+// ADD FAVORITE (stub)
+export async function addFavorite(req, res) {
+  res.json({ message: "Add favorite (stub)" });
+}
+
+// REMOVE FAVORITE (stub)
+export async function removeFavorite(req, res) {
+  res.json({ message: "Remove favorite (stub)" });
+}
+
+// MOBILE/FIREBASE SIGNUP (upsert by firebaseUid)
+export async function registerMobileUser(req, res) {
+  const { email, firstName, lastName } = req.body;
+  const firebaseUid = req.firebaseUid;
+  const user = await User.findOneAndUpdate(
+    { firebaseUid },
+    { firebaseUid, email, firstName, lastName },
+    { upsert: true, new: true }
+  );
+  return res.json({ user });
+}

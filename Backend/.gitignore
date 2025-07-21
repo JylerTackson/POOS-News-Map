@@ -1,4 +1,5 @@
 # Logs
+Backend/firebase-adminsdk.json
 logs
 *.log
 npm-debug.log*

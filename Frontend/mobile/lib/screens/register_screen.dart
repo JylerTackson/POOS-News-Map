@@ -5,212 +5,132 @@ import 'dart:convert';
 
 class RegisterScreen extends StatefulWidget {
   final String title;
-  const RegisterScreen({Key? key, required this.title}) : super(key: key);
+  const RegisterScreen({super.key, required this.title});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
+  final _firstNameCtrl = TextEditingController();
+  final _lastNameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   bool isLoading = false;
-  String responseMessage = '';
+  String message = '';
 
-  Future<void> registerUser() async {
+  Future<void> _register() async {
     final url = '${dotenv.env['API_BASE_URL']}/api/users/register';
     final body = jsonEncode({
-      "firstName": _firstNameController.text.trim(),
-      "lastName": _lastNameController.text.trim(),
-      "email": _emailController.text.trim(),
-      "password": _passwordController.text.trim(),
+      'firstName': _firstNameCtrl.text.trim(),
+      'lastName': _lastNameCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'password': _passCtrl.text,
     });
-
-    // Debug logging
-    print('🔗 POST → $url');
-    print('📦 PAYLOAD → $body');
 
     setState(() {
       isLoading = true;
-      responseMessage = '';
+      message = '';
     });
-
     try {
-      final response = await http.post(
+      final resp = await http.post(
         Uri.parse(url),
-        headers: {"Content-Type": "application/json"},
+        headers: {'Content-Type': 'application/json'},
         body: body,
       );
-
-      print('📥 STATUS → ${response.statusCode}');
-      print('📄 BODY   → ${response.body}');
-
-      if (response.statusCode == 201) {
-        setState(() {
-          responseMessage = "Registration successful!";
-        });
-        // Navigate to login after a short delay
+      if (resp.statusCode == 201) {
+        setState(() => message = 'Registration successful!');
         Future.delayed(const Duration(seconds: 1), () {
           Navigator.pushReplacementNamed(context, '/login');
         });
       } else {
-        try {
-          final data = jsonDecode(response.body);
-          setState(() {
-            responseMessage = data['message'] ?? 'Registration failed.';
-          });
-        } catch (_) {
-          setState(() {
-            responseMessage = 'Registration failed (invalid server response).';
-          });
-        }
+        final data = jsonDecode(resp.body);
+        setState(() => message = data['Error'] ?? 'Registration failed.');
       }
     } catch (e) {
-      print('❌ ERROR → $e');
-      setState(() {
-        responseMessage = 'An error occurred: $e';
-      });
+      setState(() => message = 'Error: $e');
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
-  }
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.greenAccent,
-        foregroundColor: Colors.white,
-      ),
+          title: Text(widget.title), backgroundColor: Colors.greenAccent),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              const Text(
-                'Register',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.greenAccent,
-                  fontWeight: FontWeight.bold,
-                ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            const Text('Register',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            _buildField(_firstNameCtrl, 'First Name', Icons.person),
+            const SizedBox(height: 15),
+            _buildField(_lastNameCtrl, 'Last Name', Icons.person),
+            const SizedBox(height: 15),
+            _buildField(_emailCtrl, 'Email', Icons.email,
+                keyboardType: TextInputType.emailAddress),
+            const SizedBox(height: 15),
+            _buildField(_passCtrl, 'Password', Icons.lock, obscureText: true),
+            const SizedBox(height: 25),
+            ElevatedButton.icon(
+              onPressed: isLoading ? null : _register,
+              icon: isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.app_registration),
+              label: Text(isLoading ? 'Registering…' : 'Register'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+                backgroundColor: Colors.greenAccent,
               ),
+            ),
+            TextButton(
+              onPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/login'),
+              child: const Text('Go to Login'),
+            ),
+            if (message.isNotEmpty) ...[
               const SizedBox(height: 20),
-
-              _buildTextField(
-                controller: _firstNameController,
-                label: 'First Name',
-                icon: Icons.person,
-              ),
-              const SizedBox(height: 15),
-
-              _buildTextField(
-                controller: _lastNameController,
-                label: 'Last Name',
-                icon: Icons.person,
-              ),
-              const SizedBox(height: 15),
-
-              _buildTextField(
-                controller: _emailController,
-                label: 'Email',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 15),
-
-              _buildTextField(
-                controller: _passwordController,
-                label: 'Password',
-                icon: Icons.lock,
-                obscureText: true,
-              ),
-              const SizedBox(height: 25),
-
-              ElevatedButton.icon(
-                onPressed: isLoading ? null : registerUser,
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.app_registration),
-                label: Text(isLoading ? 'Registering...' : 'Register'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  backgroundColor: Colors.greenAccent,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-
-              TextButton(
-                onPressed: () =>
-                    Navigator.pushReplacementNamed(context, '/login'),
-                child: const Text('Go to Login'),
-              ),
-
-              if (responseMessage.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Text(
-                  responseMessage,
-                  style: TextStyle(
-                    color: responseMessage.contains('successful')
+              Text(
+                message,
+                style: TextStyle(
+                    color: message.contains('successful')
                         ? Colors.green
                         : Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                    fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
+  Widget _buildField(
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: const OutlineInputBorder(),
-        focusedBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.greenAccent, width: 2),
+  }) =>
+      TextField(
+        controller: ctrl,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: const OutlineInputBorder(),
+          focusedBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.greenAccent, width: 2),
+          ),
         ),
-        floatingLabelStyle: const TextStyle(color: Colors.greenAccent),
-      ),
-    );
-  }
+      );
 }

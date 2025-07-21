@@ -1,27 +1,32 @@
-name: mobile
-description: "A new Flutter project."
+name: news_map_mobile
+description: A News Map Today app
 publish_to: 'none'
-version: 1.0.0+1
 
 environment:
-  sdk: ">=2.18.0 <4.0.0"
+  sdk: ">=2.18.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
 
-  # add these three:
-  flutter_map: ^8.2.1
-  latlong2:  ^0.9.1
-  intl:      ^0.20.2
+  # Mapping
+  flutter_map: ^8.1.1
+  latlong2:   ^0.9.0
 
+  # Networking & Localization
   http: ^1.4.0
-  flutter_secure_storage: ^9.2.4
+  intl: ^0.20.2
+
+  # Firebase (updated)
+  firebase_core:      ^3.15.2    # was ^3.15.1
+  firebase_auth:      ^5.7.0     # was ^5.6.2
+  firebase_analytics: ^11.6.0    # was ^11.5.2
+
+  # Environment variables
   flutter_dotenv: ^5.0.2
-  firebase_core: ^3.15.1
-  firebase_analytics: ^11.5.2
-  firebase_auth: ^5.6.2
+
+  # Google sign‑in
+  google_sign_in: ^7.1.1
 
 dev_dependencies:
   flutter_test:
@@ -30,5 +35,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
   assets:
     - .env

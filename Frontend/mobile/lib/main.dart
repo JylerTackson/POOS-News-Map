@@ -1,13 +1,14 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart'; // for navigator observer
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_analytics/observer.dart';
 
-import 'screens/home_screen.dart';
 import 'firebase_options.dart';
+import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/account_screen.dart';
 
 late final FirebaseAnalytics analytics;
 late final FirebaseAnalyticsObserver observer;
@@ -20,7 +21,6 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // initialize analytics and the observer
   analytics = FirebaseAnalytics.instance;
   observer = FirebaseAnalyticsObserver(analytics: analytics);
 
@@ -34,8 +34,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'News Map Today',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(title: 'News Map Today'),
-      navigatorObservers: [observer], // attach the analytics observer
+      initialRoute: '/home',
+      routes: {
+        '/home': (_) => const HomeScreen(title: 'News Map Today'),
+        '/login': (_) => const LoginPage(title: 'Login'),
+        '/register': (_) => const RegisterScreen(title: 'Register'),
+        '/account': (_) => const AccountPage(),
+      },
+      navigatorObservers: [observer],
     );
   }
 }

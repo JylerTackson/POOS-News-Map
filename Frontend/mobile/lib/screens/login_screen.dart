@@ -1,74 +1,105 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.title});
   final String title;
+  const LoginPage({super.key, required this.title});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _loading = false;
 
-  Future<void> login() async {
+  Future<void> _login() async {
+    setState(() => _loading = true);
     final success = await AuthService().loginUser(
-      emailController.text,
-      passwordController.text,
+      email: _emailCtrl.text.trim(),
+      password: _passwordCtrl.text,
     );
+    setState(() => _loading = false);
 
-    if (success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Login successful")));
-      // Navigate to home or dashboard screen here
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Login failed")));
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(success ? 'Login successful' : 'Login failed')),
+    );
+    if (success) Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _loading = true);
+    final success = await AuthService().signInWithGoogle();
+    setState(() => _loading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Text(
+              success ? 'Google sign‑in successful' : 'Google sign‑in failed')),
+    );
+    if (success) Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
-        backgroundColor: Colors.greenAccent,
-        foregroundColor: Colors.white,
-      ),
+          title: Text(widget.title), backgroundColor: Colors.greenAccent),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Login',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        padding: const EdgeInsets.all(24.0),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Text('Login',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _emailCtrl,
+            decoration: const InputDecoration(
+                labelText: 'Email', prefixIcon: Icon(Icons.email)),
+            keyboardType: TextInputType.emailAddress,
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _passwordCtrl,
+            decoration: const InputDecoration(
+                labelText: 'Password', prefixIcon: Icon(Icons.lock)),
+            obscureText: true,
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _loading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                minimumSize: const Size.fromHeight(48),
+              ),
+              child: _loading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Login'),
             ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              icon: Image.asset(
+                'assets/google_logo.png',
+                height: 24,
+                width: 24,
+              ),
+              label: const Text('Sign in with Google'),
+              onPressed: _loading ? null : _loginWithGoogle,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(onPressed: login, child: const Text('Login')),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/register');
-              },
-              child: const Text('Go to Register'),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () =>
+                Navigator.pushReplacementNamed(context, '/register'),
+            child: const Text('Don’t have an account? Register'),
+          ),
+        ]),
       ),
     );
   }
