@@ -1,3 +1,4 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
@@ -6,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'daily_screen.dart';
+import 'favorites_screen.dart';
 import 'account_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,124 +20,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
-  bool _loginShown = false;
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  bool _loggingIn = false;
-  String _loginError = '';
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowLogin());
-  }
-
-  Future<void> _maybeShowLogin() async {
-    if (_loginShown) return;
-    _loginShown = true;
-    await _showLoginDialog();
-  }
-
-  Future<void> _showLoginDialog() async {
-    await showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => AlertDialog(
-        title: const Text('Please Log In'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _emailCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _passCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
-              ),
-              obscureText: true,
-            ),
-            if (_loginError.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(_loginError, style: const TextStyle(color: Colors.red)),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close')),
-          ElevatedButton(
-            onPressed: _loggingIn
-                ? null
-                : () async {
-                    setState(() {
-                      _loggingIn = true;
-                      _loginError = '';
-                    });
-                    final base = dotenv.env['API_BASE_URL']!;
-                    final uri = Uri.parse('$base/api/users/login');
-                    try {
-                      final resp = await http.post(
-                        uri,
-                        headers: {'Content-Type': 'application/json'},
-                        body: jsonEncode({
-                          'email': _emailCtrl.text.trim(),
-                          'password': _passCtrl.text.trim(),
-                        }),
-                      );
-                      if (resp.statusCode == 200) {
-                        Navigator.pop(context);
-                      } else {
-                        setState(() {
-                          _loginError =
-                              jsonDecode(resp.body)['Error'] ?? 'Login failed';
-                        });
-                      }
-                    } catch (e) {
-                      setState(() => _loginError = 'Error: $e');
-                    } finally {
-                      setState(() => _loggingIn = false);
-                    }
-                  },
-            child: _loggingIn
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
-                : const Text('Log In'),
-          ),
-        ],
-      ),
-    );
-  }
+  final pages = const <Widget>[
+    MapPage(),
+    DailyScreen(title: 'Daily News'),
+    FavoritesScreen(),
+    AccountPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final pages = <Widget>[
-      const MapPage(),
-      const DailyScreen(title: 'Daily'),
-      const Center(child: Text('Favorites')),
-      const AccountPage(),
-    ];
     final current = pages[selectedIndex];
 
     return LayoutBuilder(builder: (ctx, caps) {
+      // Narrow: bottom nav
       if (caps.maxWidth < 600) {
         return Scaffold(
+          appBar: AppBar(title: Text(widget.title)),
           body: current,
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: selectedIndex,
             onTap: (i) => setState(() => selectedIndex = i),
             items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
               BottomNavigationBarItem(
                   icon: Icon(Icons.access_time), label: 'Daily'),
               BottomNavigationBarItem(
@@ -146,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       }
+
+      // Wide: rail
       return Scaffold(
         body: Row(
           children: [
@@ -154,11 +63,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (i) => setState(() => selectedIndex = i),
                 labelType: NavigationRailLabelType.all,
-                leading: IconButton(
-                    icon: const Icon(Icons.menu), onPressed: _showLoginDialog),
                 destinations: const [
                   NavigationRailDestination(
-                      icon: Icon(Icons.home), label: Text('Home')),
+                      icon: Icon(Icons.map), label: Text('Map')),
                   NavigationRailDestination(
                       icon: Icon(Icons.access_time), label: Text('Daily')),
                   NavigationRailDestination(
@@ -168,18 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+            const VerticalDivider(width: 1),
             Expanded(child: current),
           ],
         ),
       );
     });
-  }
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    super.dispose();
   }
 }
 
