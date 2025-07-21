@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from "@/components/ui/dialog";
 import { useUser } from "../../Contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +16,8 @@ const ProfilePage: React.FC = () => {
   const { user, setUser } = useUser();
   const navigate = useNavigate();
   const [updateStatus, setUpdateStatus] = useState<boolean>(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
 
   //TODO: Implement logic for logging out a user.
   function onLogout() {
@@ -27,9 +29,13 @@ const ProfilePage: React.FC = () => {
   function onUpdate() {
     setUpdateStatus(true);
   }
+  //Show deleteion confirmation dialog
+  const onDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
 
-  // logic for deleting user
- async function Delete() {
+  //logic for deleting user
+  async function Delete() {
   
   if (!user?._id) {
     toast.error("No user to delete");
@@ -54,8 +60,12 @@ const ProfilePage: React.FC = () => {
   } catch (err) {
     toast.error("Error deleting account");
     console.error(err);
+  } finally {
+    setShowDeleteDialog(false);
   }
-}
+  }
+
+
 
 if(user === null){
   return (<div>
@@ -111,9 +121,27 @@ if(user === null){
             Logout
           </Button>
           <Button onClick={onUpdate}>Update Info</Button>
-          <Button variant="destructive" onClick={Delete}>
+          <Button variant="destructive" onClick={onDeleteClick}>
             Delete
           </Button>
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Are you sure?</DialogTitle>
+                <DialogDescription>
+                  This action <strong>CANNOT BE UNDONE</strong>. Are you sure you want to delete your account?
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="space-x-2">
+                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={Delete}>
+                  Yes, Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     );

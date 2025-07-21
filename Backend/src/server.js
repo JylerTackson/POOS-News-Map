@@ -56,7 +56,7 @@ async function main() {
       dbName: "app",
     });
     console.log("MongoDB Connected using Mongoose");
-
+    
     //2) Schedule Cron Jobs
     cron.schedule("0 8 * * *", async () => {
       try {
