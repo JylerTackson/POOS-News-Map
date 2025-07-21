@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Heart } from "lucide-react";
+import { Heart, ExternalLink, AlertCircle } from "lucide-react";
 
 export interface NewsItem {
   country: string;
@@ -16,8 +16,8 @@ export interface NewsItem {
   date: Date;
   source: string;
   favorite: boolean;
-   url?: string;         // Add this line - optional since some articles might not have it
-  urlToImage?: string;  // Add this line - optional for the image URL
+  url?: string;         
+  urlToImage?: string;  
 }
 
 interface NewsCardProps {
@@ -26,7 +26,7 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
-  const { country, headline, body, date, source, favorite } = news;
+  const { country, headline, body, date, source, favorite, url } = news;
   const formatted = new Date(date).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
@@ -36,7 +36,7 @@ export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
   return (
     <Card className="rounded-2xl shadow-lg hover:shadow-xl p-4 bg-white dark:bg-gray-800">
       <CardHeader>
-        <CardTitle>{headline}</CardTitle>
+        <CardTitle className="line-clamp-2">{headline}</CardTitle>
         <CardDescription>
           {source} • {country}
         </CardDescription>
@@ -46,14 +46,32 @@ export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
       </CardContent>
       <CardFooter className="flex justify-between items-center">
         <span className="text-sm text-muted-foreground">{formatted}</span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onToggleFavorite?.({ ...news, favorite: !favorite })}
-          aria-label={favorite ? "Unfavorite" : "Favorite"}
-        >
-          <Heart className={favorite ? "fill-red-500 text-red-500" : ""} />
-        </Button>
+        <div className="flex items-center gap-2">
+          {url ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
+              className="flex items-center gap-1"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Read Article
+            </Button>
+          ) : (
+            <div className="flex items-center gap-1 text-xs text-gray-500">
+              <AlertCircle className="w-3 h-3" />
+              No URL available
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onToggleFavorite?.({ ...news, favorite: !favorite })}
+            aria-label={favorite ? "Unfavorite" : "Favorite"}
+          >
+            <Heart className={favorite ? "fill-red-500 text-red-500" : ""} />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

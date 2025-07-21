@@ -7,6 +7,8 @@ const savedArticlesSchema = new Schema({
   body: String,
   date: Date,
   source: String,
+  url: String,        // ADD THIS LINE
+  urlToImage: String, // ADD THIS LINE
   favorite: Boolean,
 });
 
@@ -31,6 +33,8 @@ const dailyNewsSchema = new Schema({
   body: String,
   date: Date,
   source: String,
+  url: String,        // ADD THIS LINE
+  urlToImage: String, // ADD THIS LINE
   favorite: Boolean,
 });
 

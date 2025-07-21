@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import NavBar from "./components/navBar/NavBar";
 
 //import all the pages
@@ -10,18 +10,20 @@ import HomePage from "./pages/Home/page";
 import LoginPage from "./pages/Register/Login";
 import RegistrationPage from "./pages/Register/Register";
 import ProfilePage from "./pages/Profile/Profile";
-
-// In App.tsx, add this import:
 import VerifyEmailPage from "./pages/Register/VerifyEmail";
 
 function App() {
+  const location = useLocation();
+  
+  // Hide NavBar on verify-email page
+  const hideNavBar = location.pathname === '/verify-email';
 
   return (
     <>
       <div className="h-screen w-screen">
-        <NavBar />
+        {!hideNavBar && <NavBar />}
 
-        <div className="pt-18 h-full w-full">
+        <div className={hideNavBar ? "h-full w-full" : "pt-18 h-full w-full"}>
           <Routes>
             <Route path="/pages/Home" element={<HomePage />} />
             <Route path="/pages/Favorites" element={<FavoritesPage />} />
@@ -31,12 +33,7 @@ function App() {
             <Route path="/pages/Register" element={<RegistrationPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/pages/Forgor" element={<ForgorForm />} />
-            <Route
-              path="/pages/Profile"
-              element={
-                <ProfilePage/>
-              }
-            />
+            <Route path="/pages/Profile" element={<ProfilePage />} />
           </Routes>
         </div>
       </div>
