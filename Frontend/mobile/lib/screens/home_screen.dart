@@ -1,3 +1,4 @@
+// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -71,9 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
             ),
             ElevatedButton(
@@ -99,8 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.of(context).pop();
                         } else {
                           setState(() {
-                            _loginError =
-                                jsonDecode(resp.body)['message'] ??
+                            _loginError = jsonDecode(resp.body)['message'] ??
                                 'Login failed';
                           });
                         }
@@ -134,84 +132,62 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      MapPage(),
-      const DailyScreen(title: 'Daily',), // Daily news page
-      const Center(child: Text('Favorites')), // Favorites page
-      const Center(child: Text('Account')), // Account page
+      const MapPage(),
+      const DailyScreen(title: 'Daily'),
+      const Center(child: Text('Favorites')),
+      const Center(child: Text('Account')),
     ];
     final current = pages[selectedIndex];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Narrow: bottom nav
-        if (constraints.maxWidth < 600) {
-          return Scaffold(
-            body: current,
-            bottomNavigationBar: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: selectedIndex,
-              onTap: (i) => setState(() => selectedIndex = i),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home), 
-                  label: 'Home'
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.access_time), 
-                  label: 'Daily'
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Account',
-                ),
-              ],
-            ),
-          );
-        }
-        // Wide: rail + content
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth < 600) {
         return Scaffold(
-          body: Row(
-            children: [
-              SafeArea(
-                child: NavigationRail(
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (i) =>
-                      setState(() => selectedIndex = i),
-                  labelType: NavigationRailLabelType.all,
-                  leading: IconButton(
-                    icon: const Icon(Icons.menu),
-                    onPressed: _showLoginDialog,
-                  ),
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.access_time),
-                      label: Text('Daily'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person),
-                      label: Text('Account'),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(child: current),
+          body: current,
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            currentIndex: selectedIndex,
+            onTap: (i) => setState(() => selectedIndex = i),
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.access_time), label: 'Daily'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite), label: 'Favorites'),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: 'Account'),
             ],
           ),
         );
-      },
-    );
+      }
+      return Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              child: NavigationRail(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (i) => setState(() => selectedIndex = i),
+                labelType: NavigationRailLabelType.all,
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: _showLoginDialog,
+                ),
+                destinations: const [
+                  NavigationRailDestination(
+                      icon: Icon(Icons.home), label: Text('Home')),
+                  NavigationRailDestination(
+                      icon: Icon(Icons.access_time), label: Text('Daily')),
+                  NavigationRailDestination(
+                      icon: Icon(Icons.favorite), label: Text('Favorites')),
+                  NavigationRailDestination(
+                      icon: Icon(Icons.person), label: Text('Account')),
+                ],
+              ),
+            ),
+            Expanded(child: current),
+          ],
+        ),
+      );
+    });
   }
 
   @override
@@ -240,8 +216,8 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return FlutterMap(
       options: MapOptions(
-        center: LatLng(28.60257, -81.20009),
-        zoom: 13,
+        initialCenter: LatLng(28.60257, -81.20009),
+        initialZoom: 13,
         maxZoom: 18,
         onTap: _onTap,
       ),
@@ -258,7 +234,7 @@ class _MapPageState extends State<MapPage> {
                     point: _marker!,
                     width: 40,
                     height: 40,
-                    builder: (_) => const Icon(
+                    child: const Icon(
                       Icons.location_pin,
                       size: 40,
                       color: Colors.blue,

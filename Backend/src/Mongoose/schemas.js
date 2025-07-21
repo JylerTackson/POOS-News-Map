@@ -16,6 +16,8 @@ const userSchema = new Schema({
   lastName: String,
   email: String,
   password: String,
+  firebaseUid:   { type: String, unique: true, sparse: true },
+
   savedArticles: [savedArticlesSchema],
 });
 

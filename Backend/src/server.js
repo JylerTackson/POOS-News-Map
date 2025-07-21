@@ -4,7 +4,7 @@ import cors from "cors";
 
 //Env Connections for Keys
 import dotenv from "dotenv";
-dotenv.config();
+
 
 //Mongoose for MongoDB Connection
 import mongoose from "mongoose";
@@ -17,10 +17,23 @@ import { fetchAndStoreNews } from "./api/news/controller.js";
 import newsRoutes from "./api/news/route.js";
 import userRoutes from "./api/users/route.js";
 import teamRoutes from "./api/team/route.js";
+import authMiddleware from './middleware/auth_middleware.js';
+
+
+//FireBase
+import admin from "firebase-admin" 
+
+dotenv.config();
 
 //TODO: NEED TO MOVE INTO .env FILE
 const uri = process.env.MONGO_URI;
 const PORT = process.env.PORT || 5050;
+
+admin.initializeApp({
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
+  )
+});
 
 //Create Express object
 const app = express();
@@ -56,6 +69,10 @@ async function main() {
     // 3) start server
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`server listening on port http://0.0.0.0:${PORT}`);
+    });
+
+    admin.initializeApp({
+      credential: admin.credential.cert(require(process.env.FIREBASE_SERVICE_ACCOUNT))
     });
   } catch (err) {
     console.error("startup error", err);
