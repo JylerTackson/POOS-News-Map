@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -15,22 +16,32 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _loading = false;
-  final _auth = AuthService();
+  String? _error;
 
   Future<void> _register() async {
-    setState(() => _loading = true);
-    final ok = await _auth.registerUser(
-      firstName: _firstCtrl.text.trim(),
-      lastName: _lastCtrl.text.trim(),
-      email: _emailCtrl.text.trim(),
-      password: _passCtrl.text,
-    );
-    setState(() => _loading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(ok ? 'Registered!' : 'Registration failed')),
-    );
-    if (ok) Navigator.pushReplacementNamed(context, '/login');
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await context.read<AuthService>().registerUser(
+            firstName: _firstCtrl.text.trim(),
+            lastName: _lastCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
+            password: _passCtrl.text,
+          );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registered! Please log in.')),
+      );
+      // After register, pop back to Login tab
+      Navigator.pop(context);
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -90,6 +101,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 obscureText: true,
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                Text(_error!, style: const TextStyle(color: Colors.red)),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,

@@ -1,187 +1,258 @@
-import 'dart:async'; // Import for StreamSubscription
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// lib/screens/account_screen.dart
 
-class AccountPage extends StatefulWidget {
-  const AccountPage({super.key});
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+import '../services/auth_service.dart';
+
+class AccountScreen extends StatefulWidget {
+  const AccountScreen({Key? key}) : super(key: key);
   @override
-  State<AccountPage> createState() => _AccountPageState();
+  State<AccountScreen> createState() => _AccountScreenState();
 }
 
-class _AccountPageState extends State<AccountPage> {
+class _AccountScreenState extends State<AccountScreen> {
+  // Profile controllers
+  final _firstCtrl = TextEditingController();
+  final _lastCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _passwordCtrl = TextEditingController();
-  bool _loading = false;
-  String? _message;
 
-  // You can keep the functions, but they will receive the user object as a parameter
-  Future<void> _changeEmail(User user) async {
-    final newEmail = _emailCtrl.text.trim();
-    if (newEmail.isEmpty) return;
-    setState(() {
-      _loading = true;
-      _message = null;
-    });
-    try {
-      await user.updateEmail(newEmail);
-      await user.reload(); // Reload user data
-      _message = 'Email updated successfully!';
-    } on FirebaseAuthException catch (e) {
-      // Handle errors like 'requires-recent-login'
-      _message = e.message;
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
+  // Password controllers
+  final _oldCtrl = TextEditingController();
+  final _newCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+
+  bool _profileLoading = false;
+  bool _passwordLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final user = context.read<AuthService>().currentUser;
+    if (user != null) {
+      _firstCtrl.text = user.firstName;
+      _lastCtrl.text = user.lastName;
+      _emailCtrl.text = user.email;
     }
   }
-
-  Future<void> _changePassword(User user) async {
-    final newPass = _passwordCtrl.text;
-    if (newPass.length < 6) {
-      setState(() => _message = 'Password must be at least 6 characters');
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _message = null;
-    });
-    try {
-      await user.updatePassword(newPass);
-      _message = 'Password updated successfully!';
-      _passwordCtrl.clear();
-    } on FirebaseAuthException catch (e) {
-      _message = e.message;
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
-
-  Future<void> _signOut() => FirebaseAuth.instance.signOut();
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
-    _passwordCtrl.dispose();
+    for (var c in [
+      _firstCtrl,
+      _lastCtrl,
+      _emailCtrl,
+      _oldCtrl,
+      _newCtrl,
+      _confirmCtrl,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    if (_profileLoading) return;
+    final emailText = _emailCtrl.text.trim();
+    // Basic email validation
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(emailText)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email address')),
+      );
+      return;
+    }
+
+    setState(() => _profileLoading = true);
+
+    try {
+      await context.read<AuthService>().updateProfile(
+            firstName: _firstCtrl.text.trim(),
+            lastName: _lastCtrl.text.trim(),
+            email: emailText,
+          );
+
+      final user = context.read<AuthService>().currentUser!;
+      _firstCtrl.text = user.firstName;
+      _lastCtrl.text = user.lastName;
+      _emailCtrl.text = user.email;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully!')),
+      );
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $msg')),
+      );
+    } finally {
+      if (mounted) setState(() => _profileLoading = false);
+    }
+  }
+
+  Future<void> _changePassword() async {
+    if (_passwordLoading) return;
+    final oldPass = _oldCtrl.text.trim();
+    final newPass = _newCtrl.text;
+    final confirm = _confirmCtrl.text;
+
+    if (oldPass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter current password')),
+      );
+      return;
+    }
+
+    final ok = await context.read<AuthService>().verifyOldPassword(oldPass);
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Current password is incorrect')),
+      );
+      return;
+    }
+
+    // New must differ from old
+    if (newPass == oldPass) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('New password must be different from current')),
+      );
+      return;
+    }
+
+    if (newPass.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('New password must be ≥6 characters')),
+      );
+      return;
+    }
+    if (newPass != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('New passwords do not match')),
+      );
+      return;
+    }
+
+    setState(() => _passwordLoading = true);
+    try {
+      await context.read<AuthService>().changePassword(newPass);
+      _oldCtrl.clear();
+      _newCtrl.clear();
+      _confirmCtrl.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password changed successfully!')),
+      );
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $msg')),
+      );
+    } finally {
+      if (mounted) setState(() => _passwordLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 💡 Use StreamBuilder to listen to auth state changes
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // 1. Handle loading state
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final user = context.watch<AuthService>().currentUser;
 
-        final user = snapshot.data;
-
-        // 2. Handle signed-in state
-        if (user != null) {
-          // Set initial email value if controller is empty
-          if (_emailCtrl.text.isEmpty) {
-            _emailCtrl.text = user.email ?? '';
-          }
-          return _buildAccountInfo(context, user);
-        }
-
-        // 3. Handle signed-out state
-        return _buildSignInPrompt(context);
-      },
-    );
-  }
-
-  // Helper widget for the Sign In prompt
-  Widget _buildSignInPrompt(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Not signed in', style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/login'),
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => Navigator.pushNamed(context, '/register'),
-              child: const Text('Register'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper widget for the main account info UI
-  Widget _buildAccountInfo(BuildContext context, User user) {
-    final theme = Theme.of(context).textTheme;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('Signed in as:', style: theme.titleMedium),
-          const SizedBox(height: 4),
-          Text(user.email ?? '',
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _emailCtrl,
-            decoration: const InputDecoration(
-              labelText: 'New Email',
-              prefixIcon: Icon(Icons.email),
-              border: OutlineInputBorder(),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Account'),
+        backgroundColor: Colors.greenAccent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => context.read<AuthService>().logout(),
           ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _loading ? null : () => _changeEmail(user),
-            child: const Text('Change Email'),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _passwordCtrl,
-            decoration: const InputDecoration(
-              labelText: 'New Password',
-              prefixIcon: Icon(Icons.lock),
-              border: OutlineInputBorder(),
-            ),
-            obscureText: true,
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _loading ? null : () => _changePassword(user),
-            child: const Text('Change Password'),
-          ),
-          if (_message != null) ...[
-            const SizedBox(height: 16),
-            Text(_message!,
-                style: TextStyle(
-                    color: _message!.contains('successfully')
-                        ? Colors.green
-                        : Colors.red)),
-          ],
-          const SizedBox(height: 32),
-          // Show loading indicator on the sign out button too
-          _loading
-              ? const Center(child: CircularProgressIndicator())
-              : OutlinedButton.icon(
-                  onPressed: _signOut,
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign Out'),
-                ),
         ],
       ),
+      body: user == null
+          ? const Center(child: Text('Please log in'))
+          : AbsorbPointer(
+              absorbing: _profileLoading || _passwordLoading,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('Edit Profile',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _firstCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'First Name',
+                          border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _lastCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Last Name', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _emailCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Email', border: OutlineInputBorder()),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _profileLoading ? null : _saveProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.greenAccent,
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                      child: _profileLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Save Profile'),
+                    ),
+                    const Divider(height: 40),
+                    const Text('Change Password',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _oldCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Current Password',
+                          border: OutlineInputBorder()),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _newCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'New Password',
+                          border: OutlineInputBorder()),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _confirmCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Confirm New Password',
+                          border: OutlineInputBorder()),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _passwordLoading ? null : _changePassword,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.greenAccent,
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                      child: _passwordLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Change Password'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }

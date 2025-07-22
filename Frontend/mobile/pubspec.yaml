@@ -17,16 +17,13 @@ dependencies:
   http: ^1.4.0
   intl: ^0.20.2
 
-  # Firebase (updated)
-  firebase_core:      ^3.15.2    # was ^3.15.1
-  firebase_auth:      ^5.7.0     # was ^5.6.2
-  firebase_analytics: ^11.6.0    # was ^11.5.2
+  # Secure storage for JWTs
+  flutter_secure_storage: ^8.0.0
 
-  # Environment variables
+  # Environment variables (if you still need them)
   flutter_dotenv: ^5.0.2
 
-  # Google sign‑in
-  google_sign_in: ^7.1.1
+  # State management (optional)
   provider: ^6.1.5
 
 dev_dependencies:
@@ -36,6 +33,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-
   assets:
     - .env

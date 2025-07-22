@@ -1,21 +1,43 @@
+// lib/services/auth_service.dart
+
 import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../models/user_model.dart';
 
-class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final String _base = dotenv.env['API_BASE_URL'] ?? '';
+class AuthService extends ChangeNotifier {
+  final _storage = const FlutterSecureStorage();
+  UserModel? _currentUser;
+  UserModel? get currentUser => _currentUser;
 
-  /// Register via your own backend
-  Future<bool> registerUser({
+  final String _baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+
+  AuthService() {
+    _rehydrate();
+  }
+
+  Future<void> _rehydrate() async {
+    final userJson = await _storage.read(key: 'user');
+    if (userJson != null) {
+      try {
+        final map = jsonDecode(userJson) as Map<String, dynamic>;
+        _currentUser = UserModel.fromJson(map);
+        notifyListeners();
+      } catch (_) {}
+    }
+  }
+
+  Future<void> registerUser({
     required String firstName,
     required String lastName,
     required String email,
     required String password,
   }) async {
+    final uri = Uri.parse('$_baseUrl/api/users/register');
     final resp = await http.post(
-      Uri.parse('$_base/api/users/register'),
+      uri,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'firstName': firstName,
@@ -24,79 +46,124 @@ class AuthService {
         'password': password,
       }),
     );
-    return resp.statusCode == 201;
+    if (resp.statusCode != 201) {
+      String message = 'Registration failed';
+      if (resp.body.isNotEmpty) {
+        final err = jsonDecode(resp.body) as Map<String, dynamic>;
+        message = err['Error'] ?? message;
+      }
+      throw Exception(message);
+    }
   }
 
-  /// Login via your own backend
-  Future<bool> loginUser({
+  Future<void> loginUser({
     required String email,
     required String password,
   }) async {
+    final uri = Uri.parse('$_baseUrl/api/users/login');
     final resp = await http.post(
-      Uri.parse('$_base/api/users/login'),
+      uri,
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
+      body: jsonEncode({'email': email, 'password': password}),
     );
-    return resp.statusCode == 201;
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      if (data['Login'] == 'Success') {
+        _currentUser = UserModel.fromJson(data);
+        await _storage.write(
+            key: 'user', value: jsonEncode(_currentUser!.toJson()));
+        notifyListeners();
+        return;
+      }
+      throw Exception(data['Error'] ?? 'Invalid credentials');
+    } else {
+      String message = 'Login failed';
+      if (resp.body.isNotEmpty) {
+        final err = jsonDecode(resp.body) as Map<String, dynamic>;
+        message = err['Error'] ?? message;
+      }
+      throw Exception(message);
+    }
   }
 
-  /// (Optional) Send SMS code via Firebase
-  Future<void> sendPhoneCode({
-    required String phoneNumber,
-    required void Function(PhoneAuthCredential) onAutoVerified,
-    required void Function(FirebaseAuthException) onFailed,
-    required void Function() onCodeSent,
+  Future<bool> verifyOldPassword(String oldPassword) async {
+    final email = _currentUser?.email;
+    if (email == null) return false;
+    try {
+      await loginUser(email: email, password: oldPassword);
+      return true;
+    } catch (_) {
+      // restore session
+      await _storage.write(
+          key: 'user', value: jsonEncode(_currentUser!.toJson()));
+      return false;
+    }
+  }
+
+  Future<void> logout() async {
+    _currentUser = null;
+    await _storage.delete(key: 'user');
+    notifyListeners();
+  }
+
+  Future<void> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
   }) async {
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      timeout: const Duration(seconds: 60),
-      verificationCompleted: onAutoVerified,
-      verificationFailed: onFailed,
-      codeSent: (verId, _) {
-        _verificationId = verId;
-        onCodeSent();
-      },
-      codeAutoRetrievalTimeout: (_) {},
+    if (_currentUser == null) throw Exception('Not logged in');
+    final uri = Uri.parse('$_baseUrl/api/users/update/${_currentUser!.id}');
+    final body = <String, dynamic>{};
+    if (firstName != null) body['firstName'] = firstName;
+    if (lastName != null) body['lastName'] = lastName;
+    if (email != null) body['email'] = email;
+
+    final resp = await http.patch(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
     );
+
+    if (resp.statusCode == 200) {
+      final data = resp.body.isNotEmpty
+          ? jsonDecode(resp.body) as Map<String, dynamic>
+          : {'user': _currentUser!.toJson()};
+      _currentUser = UserModel.fromJson(data['user']);
+    } else if (resp.statusCode == 204) {
+      _currentUser = _currentUser!.copyWith(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      );
+    } else {
+      String msg = 'Profile update failed';
+      if (resp.body.isNotEmpty) {
+        final err = jsonDecode(resp.body) as Map<String, dynamic>;
+        msg = err['Error'] ?? msg;
+      }
+      throw Exception(msg);
+    }
+
+    await _storage.write(
+        key: 'user', value: jsonEncode(_currentUser!.toJson()));
+    notifyListeners();
   }
 
-  String? _verificationId;
-
-  /// (Optional) Verify the SMS code the user typed
-  Future<bool> verifyPhoneCode(String smsCode) async {
-    final verId = _verificationId;
-    if (verId == null) return false;
-
-    final cred = PhoneAuthProvider.credential(
-      verificationId: verId,
-      smsCode: smsCode,
+  Future<void> changePassword(String newPassword) async {
+    if (_currentUser == null) throw Exception('Not logged in');
+    final uri = Uri.parse('$_baseUrl/api/users/update/${_currentUser!.id}');
+    final resp = await http.patch(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'password': newPassword}),
     );
-    final userCred = await _auth.signInWithCredential(cred);
-    final idToken = await userCred.user?.getIdToken();
-    if (idToken == null) return false;
-
-    // Upsert on your backend
-    final resp = await http.post(
-      Uri.parse('$_base/api/users/mobile-signup'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({
-        'email': userCred.user!.phoneNumber,
-        'firstName': userCred.user!.displayName ?? '',
-        'lastName': '',
-      }),
-    );
-    return resp.statusCode == 200;
-  }
-
-  /// Sign out
-  Future<void> signOut() async {
-    _verificationId = null;
-    await _auth.signOut();
+    if (resp.statusCode != 200 && resp.statusCode != 204) {
+      String msg = 'Password change failed';
+      if (resp.body.isNotEmpty) {
+        final err = jsonDecode(resp.body) as Map<String, dynamic>;
+        msg = err['Error'] ?? msg;
+      }
+      throw Exception(msg);
+    }
   }
 }
