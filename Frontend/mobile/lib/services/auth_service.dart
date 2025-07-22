@@ -166,4 +166,32 @@ class AuthService extends ChangeNotifier {
       throw Exception(msg);
     }
   }
+
+  Future<void> forgotPassword(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/users/forgot-password'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['ForgotPassword'] == 'Success') {
+          return; // Success
+        } else {
+          throw Exception(data['Error'] ?? 'Failed to send temporary password');
+        }
+      } else {
+        final data = jsonDecode(response.body);
+        throw Exception(data['Error'] ?? 'Failed to send temporary password');
+      }
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
 }
