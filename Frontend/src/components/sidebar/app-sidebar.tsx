@@ -142,11 +142,18 @@ export function AppSidebar({ news, country, loading, user }: AppSidebarProps) {
                         key={index} 
                         className="border-b pb-3 last:border-0"
                       >
-                        <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-start gap-3">
                           <div className="flex-1">
                             <h3 className="font-semibold text-sm mb-1 line-clamp-2">
                               {item.headline}
                             </h3>
+                            <div className="w-60s h-16 flex-shrink-0 overflow-hidden rounded">
+                            <img
+                              src={item.urlToImage}
+                              alt={item.headline}
+                              className="w-full h-full object-cover"
+                            />
+                            </div>
                             <p className="text-xs text-gray-600 line-clamp-2 mb-2">
                               {item.body}
                             </p>
