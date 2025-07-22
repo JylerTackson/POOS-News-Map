@@ -29,6 +29,7 @@ const userSchema = new Schema({
 
 const dailyNewsSchema = new Schema({
   country: String,
+  title: String,
   headline: String,
   body: String,
   date: Date,
