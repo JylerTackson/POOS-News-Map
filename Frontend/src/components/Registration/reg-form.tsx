@@ -167,10 +167,6 @@ export function RegisterForm({
               Or continue with
             </span>
           </div>
-          <Button variant="outline" className="w-full">
-            <img src="/google.svg" alt="Google logo" width={24} height={24} />
-            Register with Google
-          </Button>
         </div>
         <div className="text-center text-sm">
           Already have an account?{" "}

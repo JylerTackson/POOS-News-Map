@@ -26,7 +26,7 @@ interface TeamMemberProps {
 }
 
 export function TeamCards({ member }: TeamMemberProps) {
-  const { fullName, role, degree, gradYear, description, email } =
+  const { fullName, role, degree, gradYear, description } =
     member;
 
   return (
@@ -42,14 +42,6 @@ export function TeamCards({ member }: TeamMemberProps) {
       </CardContent>
       <CardFooter className="flex justify-between items-center">
         <span className="text-sm text-muted-foreground">{role}</span>
-        <Button asChild>
-          <a
-            href={`mailto:${email}?subject=Hello%20There`}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium"
-          >
-            Contact
-          </a>
-        </Button>
       </CardFooter>
     </Card>
   );
