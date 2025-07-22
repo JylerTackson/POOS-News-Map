@@ -9,11 +9,12 @@ import {
   ClockIcon,
   HeartIcon,
   HomeIcon,
-  InfoIcon
+  InfoIcon,
+  Map
 } from "lucide-react";
 
 const menuItems = [
-  { href: "/pages/Home", label: "Home", Icon: HomeIcon },
+  { href: "/pages/Home", label: "Map", Icon: Map },
   { href: "/pages/Favorites", label: "Favorites", Icon: HeartIcon },
   { href: "/pages/Daily", label: "Daily", Icon: ClockIcon },
   { href: "/pages/AboutUs", label: "About Us", Icon: InfoIcon },
