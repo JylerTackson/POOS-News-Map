@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,7 +25,7 @@ interface TeamMemberProps {
 }
 
 export function TeamCards({ member }: TeamMemberProps) {
-  const { fullName, role, degree, gradYear, description, email } =
+  const { fullName, role, degree, gradYear, description } =
     member;
 
   return (
