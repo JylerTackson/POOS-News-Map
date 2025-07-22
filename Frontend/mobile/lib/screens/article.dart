@@ -13,15 +13,22 @@ class Article {
     required this.url,
     this.favorite = false,
   });
-
+  
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
-      headline: json['headline'],
-      body: json['body'],
-      source: json['source'],
-      country: json['country'],
-      date: DateTime.parse(json['date'] as String),
-      url: json['url'],
+      // Use '??' to provide a default if the value is null
+      headline: json['headline'] ?? 'No Headline Available',
+      body: json['body'] ?? 'No content.',
+      source: json['source'] ?? 'Unknown Source',
+      country: json['country'] ?? 'Unknown Country',
+      url: json['url'] ?? '', // Default to an empty string for the URL
+
+      // Safely parse the date, providing a fallback for nulls or errors
+      date: json['date'] != null
+          ? DateTime.tryParse(json['date'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+
+      // This was already correct!
       favorite: json['favorite'] ?? false,
     );
   }

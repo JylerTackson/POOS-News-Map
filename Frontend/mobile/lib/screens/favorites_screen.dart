@@ -135,7 +135,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.title)),
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            widget.title,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+        ),
         body: const Center(
           child: Text('Please login to view your favorite articles.'),
         ),
@@ -143,7 +149,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            widget.title,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

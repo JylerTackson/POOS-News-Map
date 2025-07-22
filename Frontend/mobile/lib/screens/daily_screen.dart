@@ -61,7 +61,11 @@ class _DailyScreenState extends State<DailyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(widget.title),
+          centerTitle: true,
+          title: Text(
+            widget.title,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
           backgroundColor: Colors.white,
           foregroundColor: Colors.black),
       body: _loading

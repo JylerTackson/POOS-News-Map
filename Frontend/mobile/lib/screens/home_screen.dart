@@ -9,6 +9,7 @@ import 'account_screen.dart';
 import 'login_screen.dart';
 import 'about_screen.dart';
 import 'marker_articles.dart';
+import 'register_screen.dart';
 
 import '../services/auth_service.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -143,7 +144,8 @@ class _MapPageState extends State<MapPage> {
     return FlutterMap(
       options: MapOptions(
         initialCenter: LatLng(28.60257, -81.20009),
-        initialZoom: 13,
+        initialZoom: 4,
+        maxZoom: 6,
         onTap: _onTap,
       ),
       children: [

@@ -33,7 +33,7 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
   /// Fetches the country name from coordinates and then news for that country.
   Future<void> _fetchDataForLocation() async {
     try {
-      // Step 1: Reverse geocode the coordinates to get a placemark.
+      // Reverse geocode the coordinates to get a placemark.
       final placemarks = await placemarkFromCoordinates(
         widget.location.latitude,
         widget.location.longitude,
@@ -43,13 +43,13 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
         throw 'Could not determine the country for this location.';
       }
       final country = placemarks.first.country!;
+      print('📍 User clicked on country: $country');
       setState(() {
         _countryName = country;
       });
 
-      // Step 2: Fetch news articles for the determined country.
-      // Note: This assumes you have an API endpoint that accepts a country name.
-      final url = Uri.parse('${dotenv.env['API_BASE_URL']}/api/news/by-country/$country');
+      // Fetch news articles for the determined country.
+      final url = Uri.parse('${dotenv.env['API_BASE_URL']}/api/news/daily?country=$country');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -88,8 +88,8 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
     // This makes the sheet resizable.
     return DraggableScrollableSheet(
       initialChildSize: 0.4, // Start at 40% of screen height
-      minChildSize: 0.2,   // Can be dragged down to 20%
-      maxChildSize: 0.9,   // Can be dragged up to 90%
+      minChildSize: 0.2,   
+      maxChildSize: 0.9,   
       expand: false,
       builder: (_, scrollController) {
         Widget content;

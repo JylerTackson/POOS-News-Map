@@ -237,6 +237,9 @@ class _AccountScreenState extends State<AccountScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
               child: const Text('Cancel'),
             ),
             TextButton(
@@ -288,10 +291,16 @@ class _AccountScreenState extends State<AccountScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
               child: const Text('Logout'),
             ),
           ],
@@ -310,8 +319,12 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Account'),
-        backgroundColor: Colors.greenAccent,
+        centerTitle: true,
+        title: const Text(
+          'My Account',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.logout),
           onPressed: _logout,
@@ -339,7 +352,8 @@ class _AccountScreenState extends State<AccountScreen> {
                           children: [
                             CircleAvatar(
                               radius: 30,
-                              backgroundColor: Colors.greenAccent,
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
                               child: Text(
                                 '${user.firstName.isNotEmpty ? user.firstName[0] : ''}${user.lastName.isNotEmpty ? user.lastName[0] : ''}',
                                 style: const TextStyle(
@@ -390,7 +404,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     ElevatedButton(
                       onPressed: _profileLoading ? null : _saveProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _profileLoading
@@ -425,7 +440,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     ElevatedButton(
                       onPressed: _passwordLoading ? null : _setNewPassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _passwordLoading
