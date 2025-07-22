@@ -46,10 +46,10 @@ npm run build
 ## Features
 
 - Interactive map to browse regional news
-- Real-time filtering by category, date, or region
+- Saved articles in Favorites for later
 - Email notifications powered by SendGrid
-- Responsive design for both desktop and mobile
-- User personalization and bookmarking
+- Responsive design for desktop
+- User personalization
 
 ## Configuration
 
@@ -60,18 +60,18 @@ The project requires two environment files, one for the backend and one for the 
 ```dotenv
 NEWS_API_KEY=your_news_api_key  # API key for NewsAPI
 MONGO_URI=your_mongodb_connection_string  # MongoDB connection string
-NODE_ENV=production  # Set the environment mode
-CLIENT_URL=http://newsmap.today  # URL of the client app
+NODE_ENV=  # Set the environment mode
+CLIENT_URL=  # URL of the client app
 SENDGRID_API_KEY=your_sendgrid_api_key  # API key for SendGrid email service
-EMAIL_FROM=no-reply@newsmap.today  # Default from address for emails
-FRONTEND_URL=http://newsmap.today  # URL where the frontend is hosted
-PORT=80  # Port for the backend server
+EMAIL_FROM=  # Default from address for emails
+FRONTEND_URL=  # URL where the frontend is hosted
+PORT=  # Port for the backend server
 ```
 
 ### Frontend (`frontend/.env`)
 
 ```dotenv
-VITE_API_URL=http://newsmap.today  # Base URL for API requests
+VITE_API_URL=  # Base URL for API requests
 ```
 
 ## Contributing
