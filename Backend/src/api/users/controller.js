@@ -130,13 +130,7 @@ async function login(req, res) {
       });
     }
 
-    // Check if user is verified
-    if (!found.isVerified) {
-      return res.status(403).json({
-        Login: "Failure",
-        Error: "Please verify your email before logging in"
-      });
-    }
+  
 
     // Compare the provided password with the hashed password
     const isPasswordValid = await bcrypt.compare(password, found.password);
