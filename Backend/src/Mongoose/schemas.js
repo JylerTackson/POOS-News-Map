@@ -7,18 +7,24 @@ const savedArticlesSchema = new Schema({
   body: String,
   date: Date,
   source: String,
+  url: String,        // ADD THIS LINE
+  urlToImage: String, // ADD THIS LINE
   favorite: Boolean,
 });
 
 const userSchema = new Schema({
   id: Number,
-  firstName: String,
-  lastName: String,
-  email: String,
-  password: String,
-  firebaseUid:   { type: String, unique: true, sparse: true },
-
-  savedArticles: [savedArticlesSchema],
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  savedArticles: [],
+   isVerified: { type: Boolean, default: false },
+  verifyToken: String,
+  verifyTokenExpires: Date,
+  // fields for password reset
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 });
 
 const dailyNewsSchema = new Schema({
@@ -27,6 +33,8 @@ const dailyNewsSchema = new Schema({
   body: String,
   date: Date,
   source: String,
+  url: String,        // ADD THIS LINE
+  urlToImage: String, // ADD THIS LINE
   favorite: Boolean,
 });
 

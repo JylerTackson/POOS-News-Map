@@ -40,7 +40,7 @@ class AuthService {
         'password': password,
       }),
     );
-    return resp.statusCode == 200;
+    return resp.statusCode == 201;
   }
 
   /// (Optional) Send SMS code via Firebase

@@ -36,21 +36,31 @@ class _HomeScreenState extends State<HomeScreen> {
       // Narrow: bottom nav
       if (caps.maxWidth < 600) {
         return Scaffold(
-          appBar: AppBar(title: Text(widget.title)),
           body: current,
           bottomNavigationBar: BottomNavigationBar(
-            currentIndex: selectedIndex,
-            onTap: (i) => setState(() => selectedIndex = i),
-            items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.access_time), label: 'Daily'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite), label: 'Favorites'),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.person), label: 'Account'),
-            ],
-          ),
+            selectedItemColor: Color.fromARGB(255, 20, 95, 156),
+            type: BottomNavigationBarType.fixed,
+              currentIndex: selectedIndex,
+              onTap: (i) => setState(() => selectedIndex = i),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home'
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.access_time),
+                  label: 'Daily'
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favorites',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Account',
+                ),
+              ],
+            ),
         );
       }
 
@@ -60,18 +70,30 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             SafeArea(
               child: NavigationRail(
+                indicatorColor: const Color.fromARGB(255, 203, 247, 255),
+
+                selectedIconTheme: const IconThemeData(color: Color.fromARGB(255, 20, 95, 156)),
+                selectedLabelTextStyle: const TextStyle(color: Color.fromARGB(255, 20, 95, 156)),
+                unselectedIconTheme: const IconThemeData(color: Color.fromARGB(255, 105, 105, 105)),
+                unselectedLabelTextStyle: const TextStyle(color: Color.fromARGB(255, 105, 105, 105)),
+
                 selectedIndex: selectedIndex,
+
                 onDestinationSelected: (i) => setState(() => selectedIndex = i),
                 labelType: NavigationRailLabelType.all,
                 destinations: const [
                   NavigationRailDestination(
-                      icon: Icon(Icons.map), label: Text('Map')),
+                      icon: Icon(Icons.home),
+                      label: Text('Map')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.access_time), label: Text('Daily')),
+                      icon: Icon(Icons.access_time), 
+                      label: Text('Daily')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.favorite), label: Text('Favorites')),
+                      icon: Icon(Icons.favorite), 
+                      label: Text('Favorites')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.person), label: Text('Account')),
+                      icon: Icon(Icons.person), 
+                      label: Text('Account')),
                 ],
               ),
             ),

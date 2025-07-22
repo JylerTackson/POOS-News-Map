@@ -1,31 +1,23 @@
 // src/api/users/route.js
 import express from "express";
 import cors from "cors";
-import * as userCtrl from "./controller.js";
-import authMiddleware from "./auth_middleware.js";
 
 const userRoutes = express.Router();
-
 userRoutes.use(cors());
 userRoutes.use(express.json());
 
-userRoutes.post("/register", userCtrl.register);
-userRoutes.post("/login", userCtrl.login);
-userRoutes.get("/verify-email", userCtrl.verifyEmail);
-userRoutes.post("/forgot-password", userCtrl.forgotPassword);
+// src/api/users/route.js
+import * as userCtrl from "./controller.js";
 
-userRoutes.get("/:email", userCtrl.getUser);
-userRoutes.patch("/update/:id", userCtrl.updateUser);
-userRoutes.delete("/delete/:id", userCtrl.deleteUser);
-
-userRoutes.post("/:id/favorites", userCtrl.addFavorite);
-userRoutes.delete("/:id/favorites", userCtrl.removeFavorite);
-
-// Firebase mobile signup
-userRoutes.post(
-  "/mobile-signup",
-  authMiddleware,
-  userCtrl.registerMobileUser
-);
+// mounting all /api/users/* hyperlinks
+userRoutes.post("/register", userCtrl.register); // POST /api/users/register
+userRoutes.post("/login", userCtrl.login); // POST /api/users/login
+userRoutes.get("/verify-email", userCtrl.verifyEmail); // GET /api/users/verify-email?token=…&id=…
+userRoutes.get("/:email", userCtrl.getUser); // GET  /api/users/:email
+userRoutes.patch("/update/:id", userCtrl.updateUser); // PATCH /api/users/update/:id
+userRoutes.delete("/delete/:id", userCtrl.deleteUser); // DELETE /api/users/delete/:id
+userRoutes.post("/forgot-password", userCtrl.forgotPassword); // POST /api/users/forgot-password
+userRoutes.post("/:id/favorites", userCtrl.addFavorite); // POST /api/users/:id/favorites
+userRoutes.delete("/:id/favorites", userCtrl.removeFavorite); // DELETE /api/users/:id/favorites
 
 export default userRoutes;

@@ -7,6 +7,7 @@ import 'package:news_map_mobile/screens/register_screen.dart';
 import 'firebase_options.dart';
 import 'screens/home_screen.dart';
 import 'screens/account_screen.dart';
+import 'screens/login_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,8 @@ class MyApp extends StatelessWidget {
         // Only keep the screens you need as named routes:
         '/account': (_) => const AccountPage(),
         '/register': (_) => const RegisterPage(title: 'Register'),
+        '/login'  : (_) => const LoginPage(title: 'Login'),
+        '/home'   : (_) => const HomeScreen(title: 'News Map Today'),
         // If you still need a full‐screen login/register you can keep them,
         // but they will no longer be your entry point.
       },
