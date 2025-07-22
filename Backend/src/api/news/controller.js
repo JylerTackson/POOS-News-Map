@@ -119,8 +119,8 @@ async function fetchAndStoreNews() {
   }
 }
 
-//Return all daily news articles
-async function showDaily(req, res) {
+  //Return all daily news articles
+  async function showDaily(req, res) {
   //Create model that connects to the collection
   const DailyNews = mongoose.model("dailyNews", dailyNewsSchema, "DailyNews");
 
