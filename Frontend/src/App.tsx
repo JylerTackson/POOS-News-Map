@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
 import NavBar from "./components/navBar/NavBar";
 
 //import all the pages
@@ -25,6 +25,7 @@ function App() {
 
         <div className={hideNavBar ? "h-full w-full" : "pt-18 h-full w-full"}>
           <Routes>
+            <Route path="/" element={<Navigate to="/pages/Home" replace />} />
             <Route path="/pages/Home" element={<HomePage />} />
             <Route path="/pages/Favorites" element={<FavoritesPage />} />
             <Route path="/pages/Daily" element={<DailyPage />} />
