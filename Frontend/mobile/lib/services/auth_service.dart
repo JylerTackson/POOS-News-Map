@@ -194,4 +194,32 @@ class AuthService extends ChangeNotifier {
       throw Exception('Network error: ${e.toString()}');
     }
   }
+
+  Future<void> deleteAccount() async {
+    if (_currentUser == null) throw Exception('Not logged in');
+
+    final uri = Uri.parse('$_baseUrl/api/users/delete/${_currentUser!.id}');
+    final resp = await http.delete(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (resp.statusCode == 200 || resp.statusCode == 204) {
+      // Account deleted successfully, clear user data
+      _currentUser = null;
+      await _storage.delete(key: 'user');
+      notifyListeners();
+    } else {
+      String msg = 'Account deletion failed';
+      if (resp.body.isNotEmpty) {
+        try {
+          final err = jsonDecode(resp.body) as Map<String, dynamic>;
+          msg = err['Error'] ?? msg;
+        } catch (_) {
+          // If response body is not JSON, use default message
+        }
+      }
+      throw Exception(msg);
+    }
+  }
 }

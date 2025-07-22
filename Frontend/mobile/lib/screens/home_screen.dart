@@ -34,12 +34,14 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = <Widget>[
       const MapPage(),
       const DailyScreen(title: 'Daily News'),
-      const FavoritesScreen(title: 'Favorites',),
+      const FavoritesScreen(
+        title: 'Favorites',
+      ),
       const AboutScreen(), // ← About is index 3
       if (user == null)
         const LoginPage(title: 'Please Log In')
       else
-        const MapPage(),
+        const AccountScreen(), // ← Show AccountScreen when logged in
     ];
 
     final current = pages[selectedIndex];
@@ -56,25 +58,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: (i) => setState(() => selectedIndex = i),
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(Icons.map_outlined), 
-                label: 'Map'
-              ),
+                  icon: Icon(Icons.map_outlined), label: 'Map'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.access_time), 
-                label: 'Daily'
-              ),
+                  icon: Icon(Icons.access_time), label: 'Daily'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_border),
-                label: 'Favorites'
-              ),
+                  icon: Icon(Icons.favorite_border), label: 'Favorites'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.info_outline), 
-                label: 'About Us'
-              ),
+                  icon: Icon(Icons.info_outline), label: 'About Us'),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person), 
-                label: 'Account'
-              ),
+                  icon: Icon(Icons.person), label: 'Account'),
             ],
           ),
         );
@@ -104,7 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   NavigationRailDestination(
                       icon: Icon(Icons.access_time), label: Text('Daily')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.favorite_border), label: Text('Favorites')),
+                      icon: Icon(Icons.favorite_border),
+                      label: Text('Favorites')),
                   NavigationRailDestination(
                       icon: Icon(Icons.info_outline), label: Text('About Us')),
                   NavigationRailDestination(
@@ -137,7 +130,8 @@ class _MapPageState extends State<MapPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Allows the sheet to be resizable
-      backgroundColor: Colors.transparent, // Needed to see the sheet's rounded corners
+      backgroundColor:
+          Colors.transparent, // Needed to see the sheet's rounded corners
       builder: (context) {
         return MapArticleSheet(location: pos);
       },

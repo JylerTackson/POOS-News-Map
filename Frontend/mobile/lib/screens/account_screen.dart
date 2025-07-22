@@ -5,18 +5,6 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import 'article.dart';
-
-
 class AccountScreen extends StatefulWidget {
   const AccountScreen({Key? key}) : super(key: key);
   @override
@@ -30,12 +18,13 @@ class _AccountScreenState extends State<AccountScreen> {
   final _emailCtrl = TextEditingController();
 
   // Password controllers
-  final _oldCtrl = TextEditingController();
   final _newCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
   bool _profileLoading = false;
   bool _passwordLoading = false;
+  bool _passwordRetrievalLoading = false;
+  bool _deleteAccountLoading = false;
 
   @override
   void didChangeDependencies() {
@@ -54,7 +43,6 @@ class _AccountScreenState extends State<AccountScreen> {
       _firstCtrl,
       _lastCtrl,
       _emailCtrl,
-      _oldCtrl,
       _newCtrl,
       _confirmCtrl,
     ]) {
@@ -102,45 +90,71 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  Future<void> _changePassword() async {
+  bool _validatePassword(String password) {
+    // Check minimum length
+    if (password.length < 6) {
+      return false;
+    }
+
+    // Check for at least one uppercase letter
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      return false;
+    }
+
+    // Check for at least one lowercase letter
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      return false;
+    }
+
+    // Check for at least one special character
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  String _getPasswordErrorMessage(String password) {
+    if (password.isEmpty) {
+      return 'Please enter a new password';
+    }
+
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+      return 'Password must contain at least one uppercase letter';
+    }
+
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
+      return 'Password must contain at least one lowercase letter';
+    }
+
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
+      return 'Password must contain at least one special character';
+    }
+
+    return '';
+  }
+
+  Future<void> _setNewPassword() async {
     if (_passwordLoading) return;
-    final oldPass = _oldCtrl.text.trim();
     final newPass = _newCtrl.text;
     final confirm = _confirmCtrl.text;
 
-    if (oldPass.isEmpty) {
+    // Validate password
+    final errorMessage = _getPasswordErrorMessage(newPass);
+    if (errorMessage.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter current password')),
+        SnackBar(content: Text(errorMessage)),
       );
       return;
     }
 
-    final ok = await context.read<AuthService>().verifyOldPassword(oldPass);
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Current password is incorrect')),
-      );
-      return;
-    }
-
-    // New must differ from old
-    if (newPass == oldPass) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('New password must be different from current')),
-      );
-      return;
-    }
-
-    if (newPass.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New password must be ≥6 characters')),
-      );
-      return;
-    }
     if (newPass != confirm) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New passwords do not match')),
+        const SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
@@ -148,11 +162,10 @@ class _AccountScreenState extends State<AccountScreen> {
     setState(() => _passwordLoading = true);
     try {
       await context.read<AuthService>().changePassword(newPass);
-      _oldCtrl.clear();
       _newCtrl.clear();
       _confirmCtrl.clear();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully!')),
+        const SnackBar(content: Text('Password set successfully!')),
       );
     } catch (e) {
       final msg = e.toString().replaceFirst('Exception: ', '');
@@ -164,20 +177,192 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Future<void> _forgotPassword() async {
+    if (_passwordRetrievalLoading) return;
+
+    final user = context.read<AuthService>().currentUser;
+    if (user == null) return;
+
+    setState(() => _passwordRetrievalLoading = true);
+
+    try {
+      await context.read<AuthService>().forgotPassword(user.email);
+
+      // Show success dialog like in login screen
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Password Reset'),
+            content: Text(
+              'A new temporary password has been sent to:\n${user.email}\n\nPlease check your email and use the new temporary password to login again.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Log out the user since they'll need to use the new temporary password
+                  context.read<AuthService>().logout();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $msg')),
+      );
+    } finally {
+      if (mounted) setState(() => _passwordRetrievalLoading = false);
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    if (_deleteAccountLoading) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Account'),
+          content: const Text(
+            'Are you sure you want to delete your account?\n\n'
+            'This action is permanent and cannot be undone. '
+            'All your data will be permanently removed.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete Account'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _deleteAccountLoading = true);
+
+    try {
+      await context.read<AuthService>().deleteAccount();
+
+      // Show success message and navigate away
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting account: $msg')),
+      );
+    } finally {
+      if (mounted) setState(() => _deleteAccountLoading = false);
+    }
+  }
+
+  Future<void> _logout() async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await context.read<AuthService>().logout();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthService>().currentUser;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Account'),
+        backgroundColor: Colors.greenAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: _logout,
+          tooltip: 'Logout',
+        ),
+        automaticallyImplyLeading: false, // Remove default back button
+      ),
       body: user == null
           ? const Center(child: Text('Please log in'))
           : AbsorbPointer(
-              absorbing: _profileLoading || _passwordLoading,
+              absorbing: _profileLoading ||
+                  _passwordLoading ||
+                  _passwordRetrievalLoading ||
+                  _deleteAccountLoading,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // User info header
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.greenAccent,
+                              child: Text(
+                                '${user.firstName.isNotEmpty ? user.firstName[0] : ''}${user.lastName.isNotEmpty ? user.lastName[0] : ''}',
+                                style: const TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${user.firstName} ${user.lastName}',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              user.email,
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
                     const Text('Edit Profile',
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold)),
@@ -205,8 +390,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     ElevatedButton(
                       onPressed: _profileLoading ? null : _saveProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
-                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.greenAccent,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _profileLoading
@@ -214,23 +398,19 @@ class _AccountScreenState extends State<AccountScreen> {
                           : const Text('Save Profile'),
                     ),
                     const Divider(height: 40),
-                    const Text('Change Password',
+                    const Text('Set New Password',
                         style: TextStyle(
                             fontSize: 22, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: _oldCtrl,
-                      decoration: const InputDecoration(
-                          labelText: 'Current Password',
-                          border: OutlineInputBorder()),
-                      obscureText: true,
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
                       controller: _newCtrl,
                       decoration: const InputDecoration(
-                          labelText: 'New Password',
-                          border: OutlineInputBorder()),
+                        labelText: 'New Password',
+                        border: OutlineInputBorder(),
+                        helperText:
+                            'Must be 6+ chars with uppercase, lowercase & special character',
+                        helperMaxLines: 2,
+                      ),
                       obscureText: true,
                     ),
                     const SizedBox(height: 12),
@@ -243,15 +423,53 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: _passwordLoading ? null : _changePassword,
+                      onPressed: _passwordLoading ? null : _setNewPassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
-                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.greenAccent,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _passwordLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('Change Password'),
+                          : const Text('Set New Password'),
+                    ),
+
+                    const Divider(height: 40),
+
+                    // Danger Zone
+                    const Text('Danger Zone',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red)),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: _deleteAccountLoading ? null : _deleteAccount,
+                      icon: _deleteAccountLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.delete_forever),
+                      label: const Text('Delete Account'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Warning: This action cannot be undone. All your data will be permanently deleted.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),

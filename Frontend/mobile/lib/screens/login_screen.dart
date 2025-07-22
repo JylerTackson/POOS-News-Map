@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'register_screen.dart'; // import the register page directly
+import 'register_screen.dart';
 
 class LoginPage extends StatefulWidget {
   final String title;
@@ -15,12 +15,15 @@ class _LoginPageState extends State<LoginPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _loading = false;
+  bool _forgotPasswordLoading = false;
   String? _error;
+  String? _successMessage;
 
   Future<void> _login() async {
     setState(() {
       _loading = true;
       _error = null;
+      _successMessage = null;
     });
     try {
       await context.read<AuthService>().loginUser(
@@ -28,13 +31,63 @@ class _LoginPageState extends State<LoginPage> {
             password: _passwordCtrl.text,
           );
       // NO manual Navigator call here!
-      // HomeScreen’s Account tab will rebuild itself when AuthService notifies
+      // HomeScreen's Account tab will rebuild itself when AuthService notifies
     } catch (e) {
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
       });
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailCtrl.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        _error = 'Please enter your email address first';
+        _successMessage = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _forgotPasswordLoading = true;
+      _error = null;
+      _successMessage = null;
+    });
+
+    try {
+      await context.read<AuthService>().forgotPassword(email);
+      setState(() {
+        _successMessage = 'Temporary password sent to your email!';
+      });
+
+      // Show success dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Password Reset'),
+            content: const Text(
+              'A temporary password has been sent to your email. Please check your email and use the temporary password to login.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (mounted) setState(() => _forgotPasswordLoading = false);
     }
   }
 
@@ -77,6 +130,11 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 16),
               Text(_error!, style: const TextStyle(color: Colors.red)),
             ],
+            if (_successMessage != null) ...[
+              const SizedBox(height: 16),
+              Text(_successMessage!,
+                  style: const TextStyle(color: Colors.green)),
+            ],
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -92,13 +150,30 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Forgot Password Button
+            TextButton(
+              onPressed: _forgotPasswordLoading ? null : _forgotPassword,
+              child: _forgotPasswordLoading
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Forgot Password?',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+            ),
+
+            const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => const RegisterPage(title: 'Register'),
                 ),
               ),
-              child: const Text('Don’t have an account? Register'),
+              child: const Text("Don't have an account? Register"),
             ),
           ],
         ),
