@@ -8,7 +8,6 @@ import {
 import {
   ClockIcon,
   HeartIcon,
-  HomeIcon,
   InfoIcon,
   Map
 } from "lucide-react";
