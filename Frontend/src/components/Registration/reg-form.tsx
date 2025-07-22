@@ -193,7 +193,7 @@ export function RegisterForm({
               </p>
               <p className="text-sm">
                 Click the verification link in the email to activate your account. 
-                The link will open in a new tab and log you in automatically.
+                Once activated you can Login.
               </p>
               <p className="text-xs text-gray-500">
                 Can't find the email? Check your spam folder.

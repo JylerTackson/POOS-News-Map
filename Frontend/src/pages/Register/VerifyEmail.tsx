@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { API_ENDPOINTS } from "@/api";
 import { CheckCircle } from "lucide-react";
+import { Button } from "../../components/ui/button";
 
 export default function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -44,6 +45,12 @@ export default function VerifyEmailPage() {
         <p className="text-gray-600">
           Your email address has been successfully verified.
         </p>
+        <Button
+            variant="outline"
+            className="px-4 py-1 text-sm font-medium hover:bg-blue-50 transition"
+          >
+            <a href="/pages/Login">Login</a>
+          </Button>
       </div>
     </div>
   );
