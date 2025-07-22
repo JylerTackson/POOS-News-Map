@@ -188,13 +188,18 @@ export default function HomePage() {
         <MapContainer
           center={markerPosition}
           zoom={4}
+          maxZoom={6}
           minZoom={3}
           scrollWheelZoom
           className="w-full h-full"
         >
           <TileLayer
-            attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url={`https://{s}.tile.jawg.io/jawg-dark/{z}/{x}/{y}{r}.png?access-token=${'iLN3RsKjVNJGEELPbWNfdlFO4XHFLXhh8pnKGdsYiBum5KupTE656YhfjLImPzBV'}`}
+            subdomains={["a","b","c","d"]}
+            attribution={`
+              &copy; <a href="https://www.jawg.io?utm_medium=map&utm_source=attribution" target="_blank">Jawg</a>
+              — &copy; <a href="https://www.openstreetmap.org?utm_medium=map-attribution&utm_source=jawg" target="_blank">OpenStreetMap</a> contributors
+            `}
           />
           <MapClickHandler onMapClick={handleMapClick} />
           <Marker position={markerPosition}>
