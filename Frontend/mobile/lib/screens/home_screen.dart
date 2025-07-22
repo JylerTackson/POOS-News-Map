@@ -1,4 +1,5 @@
 // lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +7,7 @@ import 'daily_screen.dart';
 import 'favorites_screen.dart';
 import 'account_screen.dart';
 import 'login_screen.dart';
+import 'about_screen.dart';
 
 import '../services/auth_service.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -27,23 +29,23 @@ class _HomeScreenState extends State<HomeScreen> {
     // Watch the AuthService to know if someone is logged in
     final user = context.watch<AuthService>().currentUser;
 
-    // Build your pages array dynamically:
+    // Build your pages array dynamically, matching the nav order:
     final pages = <Widget>[
       const MapPage(),
       const DailyScreen(title: 'Daily News'),
       const FavoritesScreen(),
-      // If not logged in, show LoginPage; else show AccountScreen
+      const AboutScreen(), // ← About is index 3
       if (user == null)
         const LoginPage(title: 'Please Log In')
       else
-        const AccountScreen(),
+        const AccountScreen(), // ← Account is index 4
     ];
 
     final current = pages[selectedIndex];
 
     return LayoutBuilder(builder: (ctx, caps) {
       if (caps.maxWidth < 600) {
-        // Bottom navigation
+        // Bottom navigation for phones
         return Scaffold(
           body: current,
           bottomNavigationBar: BottomNavigationBar(
@@ -58,13 +60,15 @@ class _HomeScreenState extends State<HomeScreen> {
               BottomNavigationBarItem(
                   icon: Icon(Icons.favorite), label: 'Favorites'),
               BottomNavigationBarItem(
+                  icon: Icon(Icons.info), label: 'About Us'),
+              BottomNavigationBarItem(
                   icon: Icon(Icons.person), label: 'Account'),
             ],
           ),
         );
       }
 
-      // Navigation rail for wide screens
+      // Rail navigation for tablets/desktops
       return Scaffold(
         body: Row(
           children: [
@@ -89,6 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(Icons.access_time), label: Text('Daily')),
                   NavigationRailDestination(
                       icon: Icon(Icons.favorite), label: Text('Favorites')),
+                  NavigationRailDestination(
+                      icon: Icon(Icons.info), label: Text('About')),
                   NavigationRailDestination(
                       icon: Icon(Icons.person), label: Text('Account')),
                 ],
