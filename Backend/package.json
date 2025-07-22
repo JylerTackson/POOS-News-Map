@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "openapi:gen": "node ./src/scripts/dump-openapi.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
@@ -18,7 +19,9 @@
     "mongoose": "^8.16.1",
     "newsapi": "^2.4.1",
     "node-cron": "^4.2.0",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
