@@ -5,6 +5,18 @@ import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'article.dart';
+
+
 class AccountScreen extends StatefulWidget {
   const AccountScreen({Key? key}) : super(key: key);
   @override
@@ -157,16 +169,6 @@ class _AccountScreenState extends State<AccountScreen> {
     final user = context.watch<AuthService>().currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Account'),
-        backgroundColor: Colors.greenAccent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => context.read<AuthService>().logout(),
-          ),
-        ],
-      ),
       body: user == null
           ? const Center(child: Text('Please log in'))
           : AbsorbPointer(
@@ -203,7 +205,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     ElevatedButton(
                       onPressed: _profileLoading ? null : _saveProfile,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _profileLoading
@@ -242,7 +245,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     ElevatedButton(
                       onPressed: _passwordLoading ? null : _changePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.greenAccent,
+                        backgroundColor: const Color.fromARGB(255, 16, 24, 40),
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(48),
                       ),
                       child: _passwordLoading

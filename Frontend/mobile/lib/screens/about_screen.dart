@@ -72,16 +72,22 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Meet the Team'),
-        backgroundColor: Colors.greenAccent,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 1.5,
-          children: _team.map((member) => _TeamCard(member)).toList(),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 300,
+            mainAxisExtent: 180,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+          ),
+          itemCount: _team.length,
+          itemBuilder: (context, index) {
+            return _TeamCard(_team[index]);
+          }
         ),
       ),
     );

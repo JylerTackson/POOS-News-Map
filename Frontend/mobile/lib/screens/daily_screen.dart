@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 import 'article.dart';
 
@@ -43,6 +44,19 @@ class _DailyScreenState extends State<DailyScreen> {
     }
   }
 
+  // Method to launch the URL
+  Future<void> _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      // Show a snackbar if the URL can't be launched
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $url')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,36 +88,40 @@ class _DailyScreenState extends State<DailyScreen> {
                           width: 400,
                           height: 320,
                           child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                children: [
-                                  Text(a.headline,
-                                      style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center),
-                                  const SizedBox(height: 4),
-                                  Text('${a.source} • ${a.country}',
-                                      style:
-                                          const TextStyle(color: Colors.grey)),
-                                  const SizedBox(height: 12),
-                                  Text(a.body,
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis),
-                                  const Spacer(),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(DateFormat.yMMMd().format(a.date)),
-                                      IconButton(
-                                          icon:
-                                              const Icon(Icons.favorite_border),
-                                          onPressed: () {}),
-                                    ],
-                                  )
-                                ],
+                            clipBehavior: Clip.antiAlias, // Recommended for InkWell
+                            child: InkWell( // Wrap the content with InkWell
+                              onTap: () => _launchURL(a.url), // Set the onTap action
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  children: [
+                                    Text(a.headline,
+                                        style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center),
+                                    const SizedBox(height: 4),
+                                    Text('${a.source} • ${a.country}',
+                                        style: const TextStyle(
+                                            color: Colors.grey)),
+                                    const SizedBox(height: 12),
+                                    Text(a.body,
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis),
+                                    const Spacer(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(DateFormat.yMMMd().format(a.date)),
+                                        IconButton(
+                                            icon: const Icon(
+                                                Icons.favorite_border),
+                                            onPressed: () {}),
+                                      ],
+                                    )
+                                  ],
+                                ),
                               ),
                             ),
                           ),

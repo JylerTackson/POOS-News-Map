@@ -9,6 +9,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  url_launcher: ^6.3.2
+
   # Mapping
   flutter_map: ^8.1.1
   latlong2:   ^0.9.0
@@ -25,6 +27,7 @@ dependencies:
 
   # State management (optional)
   provider: ^6.1.5
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:

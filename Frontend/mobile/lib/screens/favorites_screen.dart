@@ -1,13 +1,118 @@
-// lib/screens/favorites_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:intl/intl.dart';
 
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
+import 'article.dart';
+
+class FavoritesScreen extends StatefulWidget {
+  final String title;
+  const FavoritesScreen({super.key, required this.title});
+
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  List<Article> _articles = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    try {
+      final url = Uri.parse('${dotenv.env['API_BASE_URL']}/api/news/daily');
+      final resp = await http.get(url);
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as List;
+        setState(
+            () => _articles = data.map((e) => Article.fromJson(e)).toList());
+      } else {
+        throw 'Status ${resp.statusCode}';
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Replace with your real favorites list
-    return const Center(
-        child: Text('Your Favorites', style: TextStyle(fontSize: 24)));
+    return Scaffold(
+      appBar: AppBar(
+          title: Text(widget.title),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Text('Error: $_error',
+                      style: const TextStyle(color: Colors.red)))
+              : _articles.isEmpty
+                  ? const Center(child: Text('You have no favorited articles.'))
+                  // Adjusts # of cards per row depending on screen size
+                  : GridView.builder( 
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 500,
+                        mainAxisExtent: 350,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: _articles.length,
+                      itemBuilder: (ctx, i) {
+                        final a = _articles[i];
+                        return SizedBox(
+                          width: 400,
+                          height: 320,
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                children: [
+                                  Text(a.headline,
+                                      style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center),
+                                  const SizedBox(height: 4),
+                                  Text('${a.source} • ${a.country}',
+                                      style:
+                                          const TextStyle(color: Colors.grey)),
+                                  const SizedBox(height: 12),
+                                  Text(a.body,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis),
+                                  const Spacer(),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(DateFormat.yMMMd().format(a.date)),
+                                      IconButton(
+                                        icon:
+                                        const Icon(Icons.favorite_border),
+                                        onPressed: () 
+                                      {}),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+    );
   }
 }
+

@@ -8,6 +8,7 @@ import 'favorites_screen.dart';
 import 'account_screen.dart';
 import 'login_screen.dart';
 import 'about_screen.dart';
+import 'marker_articles.dart';
 
 import '../services/auth_service.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -33,12 +34,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = <Widget>[
       const MapPage(),
       const DailyScreen(title: 'Daily News'),
-      const FavoritesScreen(),
+      const FavoritesScreen(title: 'Favorites',),
       const AboutScreen(), // ← About is index 3
       if (user == null)
         const LoginPage(title: 'Please Log In')
       else
-        const AccountScreen(), // ← Account is index 4
+        const MapPage(),
     ];
 
     final current = pages[selectedIndex];
@@ -54,15 +55,26 @@ class _HomeScreenState extends State<HomeScreen> {
             currentIndex: selectedIndex,
             onTap: (i) => setState(() => selectedIndex = i),
             items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.access_time), label: 'Daily'),
+                icon: Icon(Icons.map_outlined), 
+                label: 'Map'
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite), label: 'Favorites'),
+                icon: Icon(Icons.access_time), 
+                label: 'Daily'
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.info), label: 'About Us'),
+                icon: Icon(Icons.favorite_border),
+                label: 'Favorites'
+              ),
               BottomNavigationBarItem(
-                  icon: Icon(Icons.person), label: 'Account'),
+                icon: Icon(Icons.info_outline), 
+                label: 'About Us'
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person), 
+                label: 'Account'
+              ),
             ],
           ),
         );
@@ -88,13 +100,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelType: NavigationRailLabelType.all,
                 destinations: const [
                   NavigationRailDestination(
-                      icon: Icon(Icons.home), label: Text('Map')),
+                      icon: Icon(Icons.map_outlined), label: Text('Map')),
                   NavigationRailDestination(
                       icon: Icon(Icons.access_time), label: Text('Daily')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.favorite), label: Text('Favorites')),
+                      icon: Icon(Icons.favorite_border), label: Text('Favorites')),
                   NavigationRailDestination(
-                      icon: Icon(Icons.info), label: Text('About')),
+                      icon: Icon(Icons.info_outline), label: Text('About Us')),
                   NavigationRailDestination(
                       icon: Icon(Icons.person), label: Text('Account')),
                 ],
@@ -118,7 +130,19 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   LatLng? _marker;
-  void _onTap(_, LatLng pos) => setState(() => _marker = pos);
+  void _onTap(_, LatLng pos) {
+    setState(() => _marker = pos);
+
+    // Show the bottom sheet.
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Allows the sheet to be resizable
+      backgroundColor: Colors.transparent, // Needed to see the sheet's rounded corners
+      builder: (context) {
+        return MapArticleSheet(location: pos);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

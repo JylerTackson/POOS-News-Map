@@ -1,7 +1,8 @@
 // lib/models/article.dart
 class Article {
-  final String headline, body, source, country;
+  final String headline, body, source, country, url;
   final DateTime date;
+  final bool favorite;
 
   Article({
     required this.headline,
@@ -9,6 +10,8 @@ class Article {
     required this.source,
     required this.country,
     required this.date,
+    required this.url,
+    this.favorite = false,
   });
 
   factory Article.fromJson(Map<String, dynamic> json) {
@@ -18,6 +21,8 @@ class Article {
       source: json['source'],
       country: json['country'],
       date: DateTime.parse(json['date'] as String),
+      url: json['url'],
+      favorite: json['favorite'] ?? false,
     );
   }
 }
