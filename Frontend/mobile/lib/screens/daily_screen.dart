@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher
 
 import 'article.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_service.dart';
 
 class DailyScreen extends StatefulWidget {
   final String title;
