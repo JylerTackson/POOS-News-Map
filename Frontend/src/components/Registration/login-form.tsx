@@ -131,6 +131,12 @@ export function LoginForm({
             Login
           </Button>
         </div>
+        <div className="text-center text-sm">
+          Dont have an Account?{" "}
+          <a href="/pages/Register" className="underline underline-offset-4">
+            Register
+          </a>
+        </div>
       </form>
     </>
   );
