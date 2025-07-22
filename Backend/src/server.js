@@ -4,8 +4,7 @@ import cors         from "cors";
 import dotenv       from "dotenv";
 import mongoose     from "mongoose";
 import cron         from "node-cron";
-import admin        from "firebase-admin";
-import fs           from "fs";
+
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
@@ -16,22 +15,6 @@ import { fetchAndStoreNews } from "./api/news/controller.js";
 
 dotenv.config();
 
-// ——————————————————————————————————————————————
-// 1) Load Firebase service account
-let serviceAccount;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-} else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
-  // read from a local JSON file
-  const raw = fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_PATH, "utf8");
-  serviceAccount = JSON.parse(raw);
-} else {
-  throw new Error("No Firebase service account provided in env");
-}
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 // ——————————————————————————————————————————————
 // 2) Create Express app
@@ -57,7 +40,7 @@ app.get(/^.*$/, (_req, res) =>
 
 // ——————————————————————————————————————————————
 // 5) Connect to Mongo, schedule cron, start server
-const PORT = process.env.PORT || 5050;
+const PORT = process.env.PORT || 54835;
 
 async function main() {
   try {
