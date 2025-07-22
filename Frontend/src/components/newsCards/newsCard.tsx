@@ -26,7 +26,7 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
-  const { country, headline, body, date, source, favorite, url } = news;
+  const { country, headline, body, date, source, favorite, url, urlToImage } = news;
   const formatted = new Date(date).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
@@ -34,9 +34,17 @@ export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
   });
 
   return (
-    <Card className="rounded-2xl shadow-lg hover:shadow-xl p-4 bg-white dark:bg-gray-800">
+    <Card className="rounded-2xl shadow-lg hover:shadow-xl p-4 bg-white dark:bg-gray-800" overflow-hidden>
+      {urlToImage &&(
+        <img
+          src={urlToImage}
+          alt={headline}
+          className="w-full h-48 object-cover"
+          />
+      )}
+      <div className="p-2">
       <CardHeader>
-        <CardTitle className="line-clamp-2">{headline}</CardTitle>
+        <CardTitle className="line-clamp-2 leading-snug mb-1">{headline}</CardTitle>
         <CardDescription>
           {source} • {country}
         </CardDescription>
@@ -44,7 +52,7 @@ export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
       <CardContent>
         <p className="line-clamp-3">{body}</p>
       </CardContent>
-      <CardFooter className="flex justify-between items-center">
+      <CardFooter className="pt-2 flex justify-between items-center">
         <span className="text-sm text-muted-foreground">{formatted}</span>
         <div className="flex items-center gap-2">
           {url ? (
@@ -73,6 +81,7 @@ export function NewsCard({ news, onToggleFavorite }: NewsCardProps) {
           </Button>
         </div>
       </CardFooter>
+      </div>
     </Card>
   );
 }

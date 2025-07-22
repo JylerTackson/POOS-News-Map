@@ -175,7 +175,7 @@ export default function HomePage() {
       <SidebarProvider
         open={openStatus}
         onOpenChange={setOpenStatus}
-        className={openStatus ? "w-96" : "w-8"}
+        className={openStatus ? "w-70" : "w-8"}
       >
         <AppSidebar news={news} country={country} loading={loading} user={user} />
         <main>
