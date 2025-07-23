@@ -9,6 +9,65 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'article.dart';
 
+const Map<String, String> countryNameToCode = {
+  "United Arab Emirates": "ae",
+  "Argentina": "ar",
+  "Austria": "at",
+  "Australia": "au",
+  "Belgium": "be",
+  "Bulgaria": "bg",
+  "Brazil": "br",
+  "Canada": "ca",
+  "Switzerland": "ch",
+  "China": "cn",
+  "Colombia": "co",
+  "Cuba": "cu",
+  "Czech Republic": "cz",
+  "Germany": "de",
+  "Egypt": "eg",
+  "France": "fr",
+  "United Kingdom": "gb",
+  "Great Britain": "gb",
+  "Greece": "gr",
+  "Hong Kong": "hk",
+  "Hungary": "hu",
+  "Indonesia": "id",
+  "Ireland": "ie",
+  "Israel": "il",
+  "India": "in",
+  "Italy": "it",
+  "Japan": "jp",
+  "South Korea": "kr",
+  "Lithuania": "lt",
+  "Latvia": "lv",
+  "Morocco": "ma",
+  "Mexico": "mx",
+  "Malaysia": "my",
+  "Nigeria": "ng",
+  "Netherlands": "nl",
+  "Norway": "no",
+  "New Zealand": "nz",
+  "Philippines": "ph",
+  "Poland": "pl",
+  "Portugal": "pt",
+  "Romania": "ro",
+  "Serbia": "rs",
+  "Russia": "ru",
+  "Saudi Arabia": "sa",
+  "Sweden": "se",
+  "Singapore": "sg",
+  "Slovenia": "si",
+  "Slovakia": "sk",
+  "Thailand": "th",
+  "Turkey": "tr",
+  "Taiwan": "tw",
+  "Ukraine": "ua",
+  "United States": "us",
+  "USA": "us",
+  "Venezuela": "ve",
+  "South Africa": "za"
+};
+
 class MapArticleSheet extends StatefulWidget {
   final LatLng location;
 
@@ -32,42 +91,71 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
 
   /// Fetches the country name from coordinates and then news for that country.
   Future<void> _fetchDataForLocation() async {
+    // --- Start of Debugging ---
+    print('--- Starting Data Fetch ---');
     try {
-      // Reverse geocode the coordinates to get a placemark.
+      print('1. Location: ${widget.location.latitude}, ${widget.location.longitude}');
+      
       final placemarks = await placemarkFromCoordinates(
         widget.location.latitude,
         widget.location.longitude,
       );
+      print('2. Geocoding successful. Placemarks found: ${placemarks.length}');
 
-      if (placemarks.isEmpty || placemarks.first.country == null) {
-        throw 'Could not determine the country for this location.';
+      if (placemarks.isEmpty) {
+        throw 'Geocoding returned no placemarks for this location.';
       }
-      final country = placemarks.first.country!;
-      print('📍 User clicked on country: $country');
+
+      final countryName = placemarks.first.country;
+      print('3. Raw country name from geocoding: $countryName');
+
+      if (countryName == null) {
+        throw 'Could not determine the country name from the placemark.';
+      }
+      
       setState(() {
-        _countryName = country;
+        _countryName = countryName;
       });
 
-      // Fetch news articles for the determined country.
-      final url = Uri.parse('${dotenv.env['API_BASE_URL']}/api/news/daily?country=$country');
+      final countryCode = countryNameToCode[countryName];
+      print('4. Looked up country code: $countryCode');
+
+      if (countryCode == null) {
+        throw 'News is not available for "$countryName".';
+      }
+      
+      final baseUrl = dotenv.env['API_BASE_URL'];
+      print('5. API Base URL from .env: $baseUrl');
+
+      if (baseUrl == null) {
+        throw 'API_BASE_URL is null. Check your .env file for typos.';
+      }
+
+      final url = Uri.parse('$baseUrl/api/news/country/$countryCode');
+      print('6. Final request URL: $url');
+      // --- End of Debugging ---
+
       final response = await http.get(url);
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = jsonDecode(response.body) as List;
         setState(() {
           _articles = data.map((json) => Article.fromJson(json)).toList();
         });
       } else {
-         throw 'No articles found for $country (Status: ${response.statusCode})';
+        throw 'No articles found for $_countryName (Status: ${response.statusCode})';
       }
     } catch (e) {
       setState(() {
         _error = e.toString();
       });
+      print('--- ERROR CAUGHT ---');
+      print(e);
     } finally {
       setState(() {
         _isLoading = false;
       });
+       print('--- Fetch finished ---');
     }
   }
 

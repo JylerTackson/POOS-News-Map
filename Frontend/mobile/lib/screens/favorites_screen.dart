@@ -255,7 +255,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                         Text(DateFormat.yMMMd().format(a.date), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                         IconButton(
                                           icon: const Icon(Icons.favorite, color: Colors.red),
-                                          onPressed: () => _confirmRemove(a),
+                                          onPressed: () => _removeFavorite(a),
                                         ),
                                       ],
                                     ),
