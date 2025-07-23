@@ -31,6 +31,7 @@ app.use("/api/team",  teamRoutes);
 // 4) (Optional) Serve Flutter Web build
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = dirname(__filename);
+
 // go up two levels (src → Backend → project root) then into Frontend/dist
 const buildPath  = join(__dirname, "..", "..", "Frontend", "dist");
 app.use(express.static(buildPath));
@@ -47,7 +48,7 @@ async function main() {
     await mongoose.connect(process.env.MONGO_URI, { dbName: "app" });
     console.log("✅ MongoDB connected");
 
-    cron.schedule("0 8 * * *", fetchAndStoreNews);
+    /*cron.schedule("0 8 * * *", fetchAndStoreNews);*/
     console.log("⏰ Scheduled daily news fetch at 08:00");
     
     app.listen(PORT, () => {
