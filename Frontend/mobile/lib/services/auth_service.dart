@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/user_model.dart';
+import '../screens/article.dart';
 
 class AuthService extends ChangeNotifier {
   final _storage = const FlutterSecureStorage();
@@ -26,6 +27,64 @@ class AuthService extends ChangeNotifier {
         _currentUser = UserModel.fromJson(map);
         notifyListeners();
       } catch (_) {}
+    }
+  }
+
+  Future<void> _updateAndPersistUser(UserModel user) async {
+    _currentUser = user;
+    await _storage.write(key: 'user', value: jsonEncode(_currentUser!.toJson()));
+    notifyListeners();
+  }
+
+  Future<void> addFavorite(Article article) async {
+    if (_currentUser == null) throw Exception('You must be logged in.');
+
+    // Add article to the local list
+    final updatedArticles = List<Article>.from(_currentUser!.savedArticles)..add(article);
+    await _updateAndPersistUser(_currentUser!.copyWith(savedArticles: updatedArticles));
+
+    try {
+      final uri = Uri.parse('$_baseUrl/api/users/${_currentUser!.id}/favorites');
+      final resp = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(article.toJson()),
+      );
+
+      if (resp.statusCode != 200 && resp.statusCode != 201) {
+        throw Exception('Server error: Failed to add favorite.');
+      }
+    } catch (e) {
+      // If the API call fails, revert the change
+      final revertedArticles = _currentUser!.savedArticles.where((a) => a.headline != article.headline || a.source != article.source).toList();
+      await _updateAndPersistUser(_currentUser!.copyWith(savedArticles: revertedArticles));
+      throw Exception('Failed to save favorite. Please try again.');
+    }
+  }
+
+   Future<void> removeFavorite(Article article) async {
+    if (_currentUser == null) throw Exception('You must be logged in.');
+    
+    // Remove article from the local list
+    final updatedArticles = _currentUser!.savedArticles.where((a) => a.headline != article.headline || a.source != article.source).toList();
+    await _updateAndPersistUser(_currentUser!.copyWith(savedArticles: updatedArticles));
+
+    try {
+      final uri = Uri.parse('$_baseUrl/api/users/${_currentUser!.id}/favorites');
+      final resp = await http.delete(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'headline': article.headline, 'source': article.source}),
+      );
+
+      if (resp.statusCode != 200 && resp.statusCode != 204) {
+        throw Exception('Server error: Failed to remove favorite.');
+      }
+    } catch (e) {
+      // If the API call fails, revert the change by re-adding the article
+      final revertedArticles = List<Article>.from(_currentUser!.savedArticles)..add(article);
+      await _updateAndPersistUser(_currentUser!.copyWith(savedArticles: revertedArticles));
+      throw Exception('Failed to remove favorite. Please try again.');
     }
   }
 
@@ -68,6 +127,7 @@ class AuthService extends ChangeNotifier {
     );
     if (resp.statusCode == 200 || resp.statusCode == 201) {
       final data = jsonDecode(resp.body) as Map<String, dynamic>;
+      print('LOGIN RESPONSE DATA: ${jsonEncode(data)}');
       if (data['Login'] == 'Success') {
         _currentUser = UserModel.fromJson(data);
         await _storage.write(

@@ -46,6 +46,32 @@ class _DailyScreenState extends State<DailyScreen> {
     }
   }
 
+  Future<void> _toggleFavorite(Article article, bool isFavorite) async {
+    // Use `listen: false` as we are in a method, not the build function
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    if (authService.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save articles!')),
+      );
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await authService.removeFavorite(article);
+      } else {
+        await authService.addFavorite(article);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
   // Method to launch the URL
   Future<void> _launchURL(String url) async {
     final uri = Uri.parse(url);
@@ -61,6 +87,9 @@ class _DailyScreenState extends State<DailyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = context.watch<AuthService>();
+    final userFavorites = authService.currentUser?.savedArticles ?? [];
+
     return Scaffold(
       appBar: AppBar(
           centerTitle: true,
@@ -90,6 +119,8 @@ class _DailyScreenState extends State<DailyScreen> {
                       itemCount: _articles.length,
                       itemBuilder: (ctx, i) {
                         final a = _articles[i];
+                        final isFavorite = userFavorites.any((fav) =>
+                            fav.headline == a.headline && fav.source == a.source);
                         return SizedBox(
                           width: 400,
                           height: 320,
@@ -121,9 +152,12 @@ class _DailyScreenState extends State<DailyScreen> {
                                       children: [
                                         Text(DateFormat.yMMMd().format(a.date)),
                                         IconButton(
-                                            icon: const Icon(
-                                                Icons.favorite_border),
-                                            onPressed: () {}),
+                                          icon: Icon(
+                                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                                            color: isFavorite ? Colors.redAccent : Colors.grey,
+                                          ),
+                                          onPressed: () => _toggleFavorite(a, isFavorite),
+                                        ),
                                       ],
                                     )
                                   ],
