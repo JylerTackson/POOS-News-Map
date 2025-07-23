@@ -57,14 +57,15 @@ async function main() {
     });
     console.log("MongoDB Connected using Mongoose");
     
+    fetchAndStoreNews();
     //2) Schedule Cron Jobs
-    cron.schedule("0 8 * * *", async () => {
-      try {
-        fetchAndStoreNews();
-      } catch (err) {
-        console.log("Error: " + err);
-      }
-    });
+    // cron.schedule("0 8 * * *", async () => {
+    //   try {
+    //     fetchAndStoreNews();
+    //   } catch (err) {
+    //     console.log("Error: " + err);
+    //   }
+    // });
 
     // 3) start server
     app.listen(PORT, () => {
