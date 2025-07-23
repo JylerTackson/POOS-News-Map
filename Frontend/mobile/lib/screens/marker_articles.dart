@@ -1,5 +1,8 @@
+// lib/screens/marker_articles.dart
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/auth_service.dart';
 import 'article.dart';
 
 const Map<String, String> countryNameToCode = {
@@ -91,50 +95,29 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
 
   /// Fetches the country name from coordinates and then news for that country.
   Future<void> _fetchDataForLocation() async {
-    // --- Start of Debugging ---
-    print('--- Starting Data Fetch ---');
     try {
-      print('1. Location: ${widget.location.latitude}, ${widget.location.longitude}');
-      
       final placemarks = await placemarkFromCoordinates(
         widget.location.latitude,
         widget.location.longitude,
       );
-      print('2. Geocoding successful. Placemarks found: ${placemarks.length}');
-
-      if (placemarks.isEmpty) {
-        throw 'Geocoding returned no placemarks for this location.';
+      if (placemarks.isEmpty || placemarks.first.country == null) {
+        throw 'Could not determine the country name.';
       }
 
-      final countryName = placemarks.first.country;
-      print('3. Raw country name from geocoding: $countryName');
-
-      if (countryName == null) {
-        throw 'Could not determine the country name from the placemark.';
-      }
-      
-      setState(() {
-        _countryName = countryName;
-      });
+      final countryName = placemarks.first.country!;
+      setState(() => _countryName = countryName);
 
       final countryCode = countryNameToCode[countryName];
-      print('4. Looked up country code: $countryCode');
-
       if (countryCode == null) {
         throw 'News is not available for "$countryName".';
       }
-      
-      final baseUrl = dotenv.env['API_BASE_URL'];
-      print('5. API Base URL from .env: $baseUrl');
 
+      final baseUrl = dotenv.env['API_BASE_URL'];
       if (baseUrl == null) {
-        throw 'API_BASE_URL is null. Check your .env file for typos.';
+        throw 'API_BASE_URL is not set.';
       }
 
       final url = Uri.parse('$baseUrl/api/news/country/$countryCode');
-      print('6. Final request URL: $url');
-      // --- End of Debugging ---
-
       final response = await http.get(url);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -146,16 +129,9 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
         throw 'No articles found for $_countryName (Status: ${response.statusCode})';
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-      print('--- ERROR CAUGHT ---');
-      print(e);
+      setState(() => _error = e.toString());
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
-       print('--- Fetch finished ---');
+      setState(() => _isLoading = false);
     }
   }
 
@@ -173,11 +149,10 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // This makes the sheet resizable.
     return DraggableScrollableSheet(
-      initialChildSize: 0.4, // Start at 40% of screen height
-      minChildSize: 0.2,   
-      maxChildSize: 0.9,   
+      initialChildSize: 0.4,
+      minChildSize: 0.2,
+      maxChildSize: 0.9,
       expand: false,
       builder: (_, scrollController) {
         Widget content;
@@ -187,7 +162,11 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
           content = Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text('Error: $_error', style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+              child: Text(
+                'Error: $_error',
+                style: const TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
             ),
           );
         } else if (_articles.isEmpty) {
@@ -198,30 +177,96 @@ class _MapArticleSheetState extends State<MapArticleSheet> {
             itemCount: _articles.length,
             itemBuilder: (ctx, i) {
               final a = _articles[i];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => _launchURL(a.url),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(a.headline, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 4),
-                        Text(a.source, style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-                        const SizedBox(height: 8),
-                        Text(a.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(DateFormat.yMMMd().format(a.date)),
+              return Consumer<AuthService>(
+                builder: (context, auth, _) {
+                  final user = auth.currentUser;
+                  final isFav = user != null &&
+                      user.savedArticles.any((x) =>
+                          x.headline == a.headline && x.source == a.source);
+
+                  return Card(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => _launchURL(a.url),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              a.headline,
+                              style: const TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              a.source,
+                              style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(a.body,
+                                maxLines: 2, overflow: TextOverflow.ellipsis),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  DateFormat.yMMMd().format(a.date),
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    isFav
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: isFav ? Colors.red : null,
+                                  ),
+                                  onPressed: () async {
+                                    if (user == null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                        content: Text(
+                                            'Please log in to manage favorites.'),
+                                      ));
+                                      return;
+                                    }
+                                    try {
+                                      if (isFav) {
+                                        await auth.removeFavorite(a);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          content:
+                                              Text('Removed from favorites.'),
+                                          backgroundColor: Colors.green,
+                                        ));
+                                      } else {
+                                        await auth.addFavorite(a);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(const SnackBar(
+                                          content: Text('Added to favorites.'),
+                                          backgroundColor: Colors.green,
+                                        ));
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                        content: Text(e.toString()),
+                                      ));
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               );
             },
           );

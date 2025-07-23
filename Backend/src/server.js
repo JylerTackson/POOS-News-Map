@@ -40,7 +40,7 @@ app.get(/^.*$/, (_req, res) =>
 
 // ——————————————————————————————————————————————
 // 5) Connect to Mongo, schedule cron, start server
-const PORT = process.env.PORT || 54835;
+const PORT = process.env.PORT || 80;
 
 async function main() {
   try {
