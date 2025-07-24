@@ -1,0 +1,65 @@
+"suiteType","suiteFile","testName","status","durationMs"
+"unit","users.controller.unit.test.mjs","User Controller (unit) › register() › 400 if missing fields","passed",9
+"unit","users.controller.unit.test.mjs","User Controller (unit) › register() › 409 if user already exists","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › register() › 201 and sends verification email on success","passed",2
+"unit","users.controller.unit.test.mjs","User Controller (unit) › register() › 500 if bcrypt.hash throws","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 400 if missing credentials","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 401 if user not found","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 403 if user not verified","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 401 if password invalid","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 201 on valid login","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › login() › 500 if findOne throws","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › getUser() › 201 if user found","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › getUser() › 404 if not found","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › getUser() › 500 on error","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › updateUser() › 409 if new email in use","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › updateUser() › 404 if user not found","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › updateUser() › 200 on success","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › updateUser() › 500 on error","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › deleteUser() › 404 if user not found","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › deleteUser() › 200 on success","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › deleteUser() › 500 on error","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › verifyEmail() › 400 if invalid/expired token","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › verifyEmail() › 200 on success","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › verifyEmail() › 500 on error","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › forgotPassword() › 400 if no email","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › forgotPassword() › 200 even if user not found","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › forgotPassword() › 200 and sends temp password on success","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › forgotPassword() › 500 on error","passed",13
+"unit","users.controller.unit.test.mjs","User Controller (unit) › addFavorite() › 404 if user not found","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › addFavorite() › 200 on success","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › addFavorite() › 500 on error","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › removeFavorite() › 404 if user not found","passed",1
+"unit","users.controller.unit.test.mjs","User Controller (unit) › removeFavorite() › 200 on success","passed",0
+"unit","users.controller.unit.test.mjs","User Controller (unit) › removeFavorite() › 500 on error","passed",2
+"unit","team.controller.unit.test.mjs","Unit Test - retrieveTeamInfo › should return 200 and list of team articles","passed",4
+"unit","team.controller.unit.test.mjs","Unit Test - retrieveTeamInfo › should return 500 if DB throws error","passed",1
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › fetchAndStoreNews › should fetch and insert articles into MongoDB","passed",666
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › fetchAndStoreNews › should handle errors in insertMany gracefully","passed",193
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › showDaily › should return all articles","passed",2
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › showDaily › should return 500 on error","passed",1
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › searchByCountry › should return filtered articles by country","passed",1
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › searchByCountry › should return 500 on find error","passed",1
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › getCountryFromCoordinates › should return a country name from coordinates","passed",1
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › getCountryFromCoordinates › should return null when country is not found","passed",0
+"unit","news.controller.unit.test.mjs","News Controller Unit Tests › getCountryFromCoordinates › should return 500 on fetch error","passed",1
+"integration","team.controller.int.test.mjs","Integration Test - retrieveTeamInfo › should return 200 and inserted team documents","passed",129
+"integration","team.controller.int.test.mjs","Integration Test - retrieveTeamInfo › should return 500 if DB is inaccessible","passed",7
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should fetch news and insert into MongoDB","passed",151
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return all articles with showDaily()","passed",28
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return 500 in showDaily() on DB error","passed",1
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return articles by country in searchByCountry()","passed",23
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return 500 in searchByCountry() on DB error","passed",1
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return country from coordinates","passed",5
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return null when no country found","passed",3
+"integration","news.controller.int.test.mjs","News Controller Integration Tests › should return 500 on reverse geocoding error","passed",3
+"integration","users.controller.int.test.mjs","Users API integration › should register a new user","passed",122
+"integration","users.controller.int.test.mjs","Users API integration › should not allow duplicate registration","passed",4
+"integration","users.controller.int.test.mjs","Users API integration › should verify email","passed",7
+"integration","users.controller.int.test.mjs","Users API integration › should login with correct credentials","passed",69
+"integration","users.controller.int.test.mjs","Users API integration › should get user details","passed",3
+"integration","users.controller.int.test.mjs","Users API integration › should update user","passed",4
+"integration","users.controller.int.test.mjs","Users API integration › should add a favorite article","passed",3
+"integration","users.controller.int.test.mjs","Users API integration › should remove a favorite article","passed",3
+"integration","users.controller.int.test.mjs","Users API integration › should send forgot password email","passed",71
+"integration","users.controller.int.test.mjs","Users API integration › should delete user","passed",3

@@ -1,10 +1,8 @@
-// tests/unit/controller.test.js
-
 import { jest } from '@jest/globals';
 import mongoose from 'mongoose';
 import { mockMongooseModel, mockNewsAPI } from '../utils/mockUtils.js';
 
-// Silence noisy logs
+// Silence logs during tests
 jest.spyOn(console, 'log').mockImplementation(() => {});
 jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -51,18 +49,14 @@ describe('News Controller Unit Tests', () => {
     });
 
     it('should handle errors in insertMany gracefully', async () => {
-      const sourcesData = {
-        sources: [{ id: 'cnn', country: 'us' }],
-      };
+      const sourcesData = { sources: [{ id: 'cnn', country: 'us' }] };
       const articlesData = {
-        articles: [
-          {
-            source: { id: 'cnn', name: 'CNN' },
-            title: 'Headline',
-            description: 'Desc',
-            publishedAt: new Date().toISOString(),
-          },
-        ],
+        articles: [{
+          source: { id: 'cnn', name: 'CNN' },
+          title: 'Headline',
+          description: 'Desc',
+          publishedAt: new Date().toISOString(),
+        }],
       };
 
       const mockApi = mockNewsAPI({ sourcesData, articlesData });
@@ -115,38 +109,6 @@ describe('News Controller Unit Tests', () => {
     });
   });
 
-  describe('showFav', () => {
-    it('should return favorited articles from dynamic collection', async () => {
-      mongoose.model = mockMongooseModel({
-        find: jest.fn().mockResolvedValue([{ favorite: true }]),
-      });
-
-      const { showFav } = await import('../../src/api/news/controller.js');
-      const req = { id: 'test' };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-      await showFav(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith([{ favorite: true }]);
-    });
-
-    it('should return 500 on query failure', async () => {
-      mongoose.model = mockMongooseModel({
-        find: jest.fn().mockRejectedValue(new Error('Collection Error')),
-      });
-
-      const { showFav } = await import('../../src/api/news/controller.js');
-      const req = { id: 'bad-user' };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-
-      await showFav(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Collection Error' });
-    });
-  });
-
   describe('searchByCountry', () => {
     it('should return filtered articles by country', async () => {
       mongoose.model = mockMongooseModel({
@@ -176,6 +138,44 @@ describe('News Controller Unit Tests', () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Query Error' });
+    });
+  });
+
+  describe('getCountryFromCoordinates', () => {
+    it('should return a country name from coordinates', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        json: jest.fn().mockResolvedValue({ address: { country: 'Canada' } })
+      });
+
+      const { getCountryFromCoordinates } = await import('../../src/api/news/controller.js');
+      const req = { params: { lat: '45.4215', lng: '-75.6998' } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await getCountryFromCoordinates(req, res);
+      expect(res.json).toHaveBeenCalledWith({ country: 'Canada' });
+    });
+
+    it('should return null when country is not found', async () => {
+      global.fetch = jest.fn().mockResolvedValue({ json: jest.fn().mockResolvedValue({}) });
+
+      const { getCountryFromCoordinates } = await import('../../src/api/news/controller.js');
+      const req = { params: { lat: '0', lng: '0' } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await getCountryFromCoordinates(req, res);
+      expect(res.json).toHaveBeenCalledWith({ country: null });
+    });
+
+    it('should return 500 on fetch error', async () => {
+      global.fetch = jest.fn().mockRejectedValue(new Error('API Error'));
+
+      const { getCountryFromCoordinates } = await import('../../src/api/news/controller.js');
+      const req = { params: { lat: '123', lng: '456' } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await getCountryFromCoordinates(req, res);
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ error: 'Failed to get country' });
     });
   });
 });
